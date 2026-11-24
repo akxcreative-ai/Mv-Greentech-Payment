@@ -10,7 +10,7 @@
  * - skipWaiting and clients.claim for seamless updates
  */
 
-const CACHE_VERSION = 'v2.0.1';
+const CACHE_VERSION = 'v2.0.2';
 const STATIC_CACHE_NAME = `mv-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `mv-dynamic-${CACHE_VERSION}`;
 
@@ -22,6 +22,8 @@ const APP_SHELL_ASSETS = [
   '/logo.png',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
+  '/icons/icon-192.svg',
+  '/icons/icon-512.svg',
 ];
 
 // Sensitive endpoints that MUST NEVER be stored in any browser cache
