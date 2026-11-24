@@ -55,6 +55,80 @@ async def lifespan(app: FastAPI):
             await ensure_default_roles(session)
             await session.commit()
         logger.info("Database schema and core roles verified.")
+
+        # Ensure default MV Greentech production accounts exist on any cold start / restart
+        async with AsyncSessionLocal() as session:
+            from sqlalchemy import select, func
+            from app.models.user import User
+            from app.models.company import Company
+            from app.models.department import Department
+            from app.models.role import Role, RoleEnum
+            from app.utils.security import hash_password
+
+            user_count = (await session.execute(select(func.count(User.id)))).scalar() or 0
+            if user_count == 0:
+                comp_q = await session.execute(select(Company).where(Company.code == "MVG-01"))
+                comp = comp_q.scalar_one_or_none()
+                if not comp:
+                    comp = Company(
+                        name="MV Greentech",
+                        code="MVG-01",
+                        address="Gurugram, Haryana, India",
+                        phone="+91-124-4567890",
+                        email="info@mvgreentech.com",
+                        gst_number="06AAAAA0000A1Z5",
+                        pan_number="AAAAA0000A",
+                        primary_color="#0D5C3A",
+                        is_active=True
+                    )
+                    session.add(comp)
+                    await session.flush()
+
+                departments = {}
+                for dept_name, code in [
+                    ("Accounts & Finance", "FIN-01"),
+                    ("Operations", "OPS-01"),
+                    ("Procurement", "PROC-01"),
+                    ("Management", "MGMT-01"),
+                ]:
+                    d_q = await session.execute(
+                        select(Department).where(Department.company_id == comp.id, Department.code == code)
+                    )
+                    dept = d_q.scalar_one_or_none()
+                    if not dept:
+                        dept = Department(company_id=comp.id, name=dept_name, code=code, is_active=True)
+                        session.add(dept)
+                        await session.flush()
+                    departments[code] = dept
+
+                roles = {}
+                for r_name in [RoleEnum.SUPER_ADMIN, RoleEnum.DIRECTOR, RoleEnum.ACCOUNTANT, RoleEnum.DEPARTMENT_HEAD]:
+                    res_r = await session.execute(select(Role).where(Role.name == r_name.value))
+                    roles[r_name.value] = res_r.scalar_one()
+
+                users_to_create = [
+                    {"email": "admin@mvgreentech.com", "password": "Admin@MVGreentech2026", "first_name": "System", "last_name": "Admin", "role_name": RoleEnum.SUPER_ADMIN.value, "dept_code": "MGMT-01", "phone": "+91-9876543210"},
+                    {"email": "approver@mvgreentech.com", "password": "Approver@MVGreentech2026", "first_name": "Executive", "last_name": "Approver", "role_name": RoleEnum.DIRECTOR.value, "dept_code": "MGMT-01", "phone": "+91-9876543211"},
+                    {"email": "accountant@mvgreentech.com", "password": "Accountant@MVGreentech2026", "first_name": "Finance", "last_name": "Accountant", "role_name": RoleEnum.ACCOUNTANT.value, "dept_code": "FIN-01", "phone": "+91-9876543212"},
+                    {"email": "requester@mvgreentech.com", "password": "Requester@MVGreentech2026", "first_name": "Operations", "last_name": "Requester", "role_name": RoleEnum.DEPARTMENT_HEAD.value, "dept_code": "OPS-01", "phone": "+91-9876543213"}
+                ]
+
+                for u_data in users_to_create:
+                    u = User(
+                        company_id=comp.id,
+                        department_id=departments[u_data["dept_code"]].id,
+                        role_id=roles[u_data["role_name"]].id,
+                        email=u_data["email"],
+                        password_hash=hash_password(u_data["password"]),
+                        first_name=u_data["first_name"],
+                        last_name=u_data["last_name"],
+                        phone=u_data["phone"],
+                        is_active=True,
+                        email_verified=True,
+                    )
+                    session.add(u)
+                await session.commit()
+                logger.info("Automatic startup bootstrap of 4 core accounts completed.")
     except Exception as exc:
         logger.warning("Database bootstrap notice (may be normal if migrations run separately): %s", exc)
 
