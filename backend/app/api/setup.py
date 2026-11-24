@@ -306,27 +306,72 @@ async def clean_production_reset():
                 await db.flush()
                 departments[code] = dept
 
-            # 5. Create Official Master Administrator Account
-            admin_user = User(
-                company_id=company.id,
-                department_id=departments["MGMT-01"].id,
-                role_id=roles[RoleEnum.SUPER_ADMIN.value].id,
-                email="admin@mvgreentech.com",
-                password_hash=hash_password("Admin@MVGreentech2026"),
-                first_name="MV",
-                last_name="Administrator",
-                phone="+91-9876543210",
-                is_active=True,
-                email_verified=True,
-            )
-            db.add(admin_user)
+            # 5. Create Official Corporate Accounts for the 4 Key Roles
+            users_to_create = [
+                {
+                    "email": "admin@mvgreentech.com",
+                    "password": "Admin@MVGreentech2026",
+                    "first_name": "System",
+                    "last_name": "Admin",
+                    "role_name": RoleEnum.SUPER_ADMIN.value,
+                    "dept_code": "MGMT-01",
+                    "phone": "+91-9876543210"
+                },
+                {
+                    "email": "approver@mvgreentech.com",
+                    "password": "Approver@MVGreentech2026",
+                    "first_name": "Executive",
+                    "last_name": "Approver",
+                    "role_name": RoleEnum.DIRECTOR.value,
+                    "dept_code": "MGMT-01",
+                    "phone": "+91-9876543211"
+                },
+                {
+                    "email": "accountant@mvgreentech.com",
+                    "password": "Accountant@MVGreentech2026",
+                    "first_name": "Finance",
+                    "last_name": "Accountant",
+                    "role_name": RoleEnum.ACCOUNTANT.value,
+                    "dept_code": "FIN-01",
+                    "phone": "+91-9876543212"
+                },
+                {
+                    "email": "requester@mvgreentech.com",
+                    "password": "Requester@MVGreentech2026",
+                    "first_name": "Operations",
+                    "last_name": "Requester",
+                    "role_name": RoleEnum.DEPARTMENT_HEAD.value,
+                    "dept_code": "OPS-01",
+                    "phone": "+91-9876543213"
+                }
+            ]
+
+            for u_data in users_to_create:
+                u = User(
+                    company_id=company.id,
+                    department_id=departments[u_data["dept_code"]].id,
+                    role_id=roles[u_data["role_name"]].id,
+                    email=u_data["email"],
+                    password_hash=hash_password(u_data["password"]),
+                    first_name=u_data["first_name"],
+                    last_name=u_data["last_name"],
+                    phone=u_data["phone"],
+                    is_active=True,
+                    email_verified=True,
+                )
+                db.add(u)
+
             await db.commit()
 
             return {
                 "status": "success",
-                "message": "System successfully converted to clean production state.",
-                "admin_email": "admin@mvgreentech.com",
-                "admin_password": "Admin@MVGreentech2026",
+                "message": "System successfully configured with 4 core production roles.",
+                "roles_configured": [
+                    {"role": "Super Admin", "email": "admin@mvgreentech.com", "password": "Admin@MVGreentech2026"},
+                    {"role": "Approver / Director", "email": "approver@mvgreentech.com", "password": "Approver@MVGreentech2026"},
+                    {"role": "Accountant / Finance", "email": "accountant@mvgreentech.com", "password": "Accountant@MVGreentech2026"},
+                    {"role": "Requester / Operations", "email": "requester@mvgreentech.com", "password": "Requester@MVGreentech2026"}
+                ],
                 "company": "MV Greentech",
                 "demo_requests_deleted": True,
                 "demo_vendors_deleted": True
