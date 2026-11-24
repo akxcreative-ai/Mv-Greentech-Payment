@@ -18,27 +18,27 @@ export const Logo: React.FC<LogoProps> = ({
   showSubtitle = true,
 }) => {
   const imgSizes = {
-    sm: 'h-8 w-auto',
-    md: 'h-10 w-auto',
-    lg: 'h-14 w-auto',
+    sm: 'h-9 w-auto',
+    md: 'h-11 w-auto',
+    lg: 'h-16 w-auto',
   };
 
   const textSizes = {
-    sm: 'text-xs',
-    md: 'text-sm',
-    lg: 'text-base',
+    sm: 'text-sm font-black',
+    md: 'text-base font-black',
+    lg: 'text-lg font-black',
   };
 
   const subtitleSizes = {
-    sm: 'text-[9px]',
-    md: 'text-[10px]',
-    lg: 'text-[11px]',
+    sm: 'text-[10px] font-extrabold',
+    md: 'text-[11px] font-extrabold',
+    lg: 'text-xs font-extrabold',
   };
 
   const content = (
-    <div className={cn('inline-flex items-center gap-3 select-none group', className)}>
+    <div className={cn('inline-flex items-center gap-3.5 select-none group', className)}>
       {/* Official MV GREENTECH Logo Image */}
-      <div className="bg-white p-1 rounded-lg shadow-sm border border-slate-200 shrink-0 flex items-center justify-center">
+      <div className="bg-white p-1.5 rounded-xl shadow-xs border border-slate-200 shrink-0 flex items-center justify-center">
         <img
           src="/logo.png"
           alt="MV Greentech"
@@ -46,12 +46,12 @@ export const Logo: React.FC<LogoProps> = ({
         />
       </div>
 
-      {/* Brand Typography */}
+      {/* Brand Typography - Bold, crisp and readable on every monitor */}
       {!compact && (
         <div className="flex flex-col leading-tight">
           <span
             className={cn(
-              'font-extrabold tracking-wider text-slate-800 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors uppercase font-sans',
+              'tracking-wider text-slate-900 group-hover:text-emerald-800 transition-colors uppercase font-sans',
               textSizes[size]
             )}
           >
@@ -60,7 +60,7 @@ export const Logo: React.FC<LogoProps> = ({
           {showSubtitle && (
             <span
               className={cn(
-                'text-emerald-700 dark:text-emerald-400 font-bold tracking-widest uppercase mt-0.5',
+                'text-emerald-700 tracking-widest uppercase mt-0.5',
                 subtitleSizes[size]
               )}
             >

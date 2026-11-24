@@ -233,33 +233,33 @@ export const LoginPage: React.FC = () => {
       <div className="space-y-6">
         {/* Header Branding */}
         <div className="text-center">
-          <div className="flex justify-center mb-2">
+          <div className="flex justify-center mb-3">
             <Logo size="lg" to="/login" showSubtitle={false} />
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-2">
             Sign In to MV Portal
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm font-semibold text-slate-700 mt-1.5 max-w-sm mx-auto leading-relaxed">
             Enterprise Payment Approval & Financial Authorization System
           </p>
         </div>
 
         {/* Security / Throttling / Lockout Alerts */}
         {isLocked && (
-          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 flex items-start gap-3 text-rose-800 dark:text-rose-200">
-            <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-            <div className="text-xs leading-relaxed">
-              <span className="font-bold block mb-0.5">Account Suspended</span>
+          <div className="p-4 rounded-xl bg-rose-50 border-2 border-rose-300 flex items-start gap-3 text-rose-900">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="text-xs leading-relaxed font-semibold">
+              <span className="font-black block mb-0.5 text-rose-950 text-sm">Account Suspended</span>
               {errorMessage}
             </div>
           </div>
         )}
 
         {lockoutRemaining > 0 && !isLocked && (
-          <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 flex items-start gap-3 text-amber-800 dark:text-amber-200">
-            <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 animate-pulse" />
-            <div className="text-xs leading-relaxed">
-              <span className="font-bold block mb-0.5">
+          <div className="p-4 rounded-xl bg-amber-50 border-2 border-amber-300 flex items-start gap-3 text-amber-950">
+            <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5 animate-pulse" />
+            <div className="text-xs leading-relaxed font-semibold">
+              <span className="font-black block mb-0.5 text-sm">
                 Sign-In Throttled ({lockoutRemaining}s remaining)
               </span>
               Too many consecutive failed attempts. To protect your organization, access is
@@ -269,10 +269,10 @@ export const LoginPage: React.FC = () => {
         )}
 
         {errorMessage && !isLocked && lockoutRemaining === 0 && (
-          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 flex items-start gap-3 text-rose-800 dark:text-rose-200">
-            <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-            <div className="text-xs leading-relaxed">
-              <span className="font-bold block mb-0.5">Authentication Error</span>
+          <div className="p-4 rounded-xl bg-rose-50 border-2 border-rose-300 flex items-start gap-3 text-rose-900">
+            <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="text-xs leading-relaxed font-semibold">
+              <span className="font-black block mb-0.5 text-rose-950 text-sm">Authentication Error</span>
               {errorMessage}
             </div>
           </div>
@@ -285,8 +285,8 @@ export const LoginPage: React.FC = () => {
             <Input
               label="Corporate Email"
               type="email"
-              placeholder="name@company.com"
-              prefixIcon={<Mail className="w-4 h-4" />}
+              placeholder="e.g. admin@mvgreentech.com"
+              prefixIcon={<Mail className="w-5 h-5" />}
               error={errors.email?.message}
               disabled={isSubmitting || lockoutRemaining > 0}
               autoComplete="email"
@@ -297,12 +297,12 @@ export const LoginPage: React.FC = () => {
           {/* Password Field */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
                 Password
               </span>
               <Link
                 to="/forgot-password"
-                className="text-xs font-medium text-navy-700 hover:text-navy-900 dark:text-cyan-400 dark:hover:text-cyan-300 transition-colors"
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline transition-colors"
                 tabIndex={-1}
               >
                 Forgot Password?
@@ -310,8 +310,8 @@ export const LoginPage: React.FC = () => {
             </div>
             <Input
               type="password"
-              placeholder="••••••••••••"
-              prefixIcon={<Lock className="w-4 h-4" />}
+              placeholder="Enter your corporate password"
+              prefixIcon={<Lock className="w-5 h-5" />}
               allowPasswordToggle={true}
               error={errors.password?.message}
               disabled={isSubmitting || lockoutRemaining > 0}
@@ -322,14 +322,14 @@ export const LoginPage: React.FC = () => {
 
           {/* Remember Me Checkbox */}
           <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
               <input
                 type="checkbox"
-                className="w-4 h-4 rounded border-slate-300 text-navy-800 focus:ring-navy-600 dark:border-dark-border dark:bg-dark-card dark:checked:bg-navy-700 transition"
+                className="w-4 h-4 rounded border-2 border-slate-300 text-emerald-700 focus:ring-emerald-600 transition"
                 disabled={isSubmitting || lockoutRemaining > 0}
                 {...register('rememberMe')}
               />
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              <span className="text-xs sm:text-sm font-semibold text-slate-700">
                 Remember this device for 30 days
               </span>
             </label>
@@ -344,35 +344,24 @@ export const LoginPage: React.FC = () => {
             isLoading={isSubmitting}
             loadingText="Verifying credentials..."
             disabled={isSubmitting || lockoutRemaining > 0}
-            rightIcon={lockoutRemaining === 0 ? <ArrowRight className="w-4 h-4" /> : undefined}
-            className="mt-2 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white shadow-md shadow-emerald-700/20"
+            rightIcon={lockoutRemaining === 0 ? <ArrowRight className="w-5 h-5" /> : undefined}
+            className="mt-3 h-12 text-base font-bold bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white shadow-lg shadow-emerald-700/25 transition-all"
           >
             {lockoutRemaining > 0 ? `Locked for ${lockoutRemaining}s` : 'Sign In to Account'}
           </Button>
         </form>
 
         {/* Corporate Support / Help Info */}
-        <div className="pt-4 border-t border-slate-100 dark:border-dark-border text-center">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+        <div className="pt-4 border-t border-slate-200 text-center">
+          <p className="text-xs sm:text-sm font-medium text-slate-700">
             Need access or forgot password?{' '}
             <a
               href="mailto:it-support@mvgreentech.com"
-              className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+              className="font-bold text-emerald-700 hover:text-emerald-800 underline"
             >
               Contact IT Support
             </a>
           </p>
-        </div>
-
-        {/* System Setup Link (Initial Provisioning) */}
-        <div className="pt-2 text-center text-xs text-slate-500 dark:text-slate-400">
-          First-time deployment?{' '}
-          <Link
-            to="/setup"
-            className="font-semibold text-navy-800 dark:text-cyan-400 hover:underline"
-          >
-            Initialize Root Administrator
-          </Link>
         </div>
 
         {/* PWA Install Prompt */}
