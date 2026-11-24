@@ -123,15 +123,15 @@ export const PWAInstallPrompt: React.FC = () => {
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-navy-800 to-navy-600 flex items-center justify-center text-white shadow-md flex-shrink-0">
-              <Smartphone className="w-6 h-6 text-cyan-400" />
+            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shadow-xs flex-shrink-0">
+              <img src="/logo.png" alt="MV Greentech" className="w-10 h-10 object-contain" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-                Install MV Approval App
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Install MV Greentech App
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
-                Install on your device for fast offline approvals and instant push alerts.
+                Install on your mobile or desktop for fast payment approvals and real-time alerts.
               </p>
             </div>
           </div>
