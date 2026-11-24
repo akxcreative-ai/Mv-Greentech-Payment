@@ -213,3 +213,15 @@ async def initialize_system(
         is_active=created_user.is_active,
         created_at=created_user.created_at,
     )
+
+
+@router.post("/seed", summary="Seed full demo data (Company, Users, Vendors, Requests)")
+async def seed_demo_data():
+    try:
+        from seed_full_demo import seed_full
+        await seed_full()
+        return {"status": "success", "message": "Demo data seeded successfully"}
+    except Exception as exc:
+        logger.error("Seeding failed: %s", exc)
+        return {"status": "error", "message": str(exc)}
+
