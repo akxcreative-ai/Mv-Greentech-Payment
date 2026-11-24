@@ -37,161 +37,45 @@ import {
   ConfirmDialog,
 } from '@/components/ui';
 import toast from 'react-hot-toast';
-
-const mockCompanies: Company[] = [
-  {
-    id: 'comp_001',
-    name: 'MV Holdings Private Limited',
-    code: 'MV-CORP',
-    isActive: true,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2026-11-01T00:00:00Z',
-  },
-  {
-    id: 'comp_002',
-    name: 'MV Infrastructure & Logistics Ltd',
-    code: 'MV-INFRA',
-    isActive: true,
-    createdAt: '2025-03-15T00:00:00Z',
-    updatedAt: '2026-11-10T00:00:00Z',
-  },
-  {
-    id: 'comp_003',
-    name: 'MV Digital Technologies Ltd',
-    code: 'MV-TECH',
-    isActive: true,
-    createdAt: '2025-06-01T00:00:00Z',
-    updatedAt: '2026-11-15T00:00:00Z',
-  },
-];
-
-const initialVendors: Vendor[] = [
-  {
-    id: 'vnd_001',
-    name: 'Tata Steel Processing Ltd',
-    vendorCode: 'VND-TATA-001',
-    companyId: 'comp_001',
-    contactPerson: 'Suresh Singhania',
-    panNumber: 'AAACT2021A',
-    gstNumber: '27AAACT2021A1ZT',
-    email: 'finance@tatasteel.com',
-    phone: '+91 22 6665 8282',
-    bankName: 'State Bank of India',
-    accountNumber: '30918274910284',
-    ifscCode: 'SBIN0001423',
-    branchName: 'Nariman Point, Mumbai',
-    address: 'Bombay House, 24 Homi Mody Street, Fort, Mumbai - 400001',
-    category: ExpenseCategory.RAW_MATERIALS,
-    isActive: true,
-    createdAt: '2026-01-15T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'vnd_002',
-    name: 'Amazon Web Services India Pvt Ltd',
-    vendorCode: 'VND-AWS-002',
-    companyId: 'comp_001',
-    contactPerson: 'Pooja Kashyap',
-    panNumber: 'AABCA9921B',
-    gstNumber: '29AABCA9921B1Z2',
-    email: 'ar-india@amazon.com',
-    phone: '+91 80 4123 4567',
-    bankName: 'Citibank N.A.',
-    accountNumber: '00392817491029',
-    ifscCode: 'CITI0000003',
-    branchName: 'MG Road, Bangalore',
-    address: 'Brigade Gateway, 26/1 Dr Rajkumar Road, Malleshwaram, Bangalore - 560055',
-    category: ExpenseCategory.IT_SOFTWARE,
-    isActive: true,
-    createdAt: '2026-02-10T00:00:00Z',
-    updatedAt: '2026-11-10T00:00:00Z',
-  },
-  {
-    id: 'vnd_003',
-    name: 'DLF Cybercity Properties Pvt Ltd',
-    vendorCode: 'VND-DLF-003',
-    companyId: 'comp_002',
-    contactPerson: 'Rohit Aggarwal',
-    panNumber: 'AABCD8812K',
-    gstNumber: '06AABCD8812K1ZQ',
-    email: 'leases@dlf.in',
-    phone: '+91 124 456 7890',
-    bankName: 'HDFC Bank Limited',
-    accountNumber: '50200091827461',
-    ifscCode: 'HDFC0000043',
-    branchName: 'Cyber City, Gurugram',
-    address: 'Shopping Mall, 3rd Floor, Arjun Marg, DLF Phase I, Gurugram - 122002',
-    category: ExpenseCategory.RENT,
-    isActive: true,
-    createdAt: '2026-01-05T00:00:00Z',
-    updatedAt: '2026-11-05T00:00:00Z',
-  },
-  {
-    id: 'vnd_004',
-    name: 'MakeMyTrip Corporate Solutions',
-    vendorCode: 'VND-MMT-004',
-    companyId: 'comp_001',
-    contactPerson: 'Alok Tandon',
-    panNumber: 'AABCM6612H',
-    gstNumber: '06AABCM6612H1ZK',
-    email: 'corporate.billing@makemytrip.com',
-    phone: '+91 124 462 8747',
-    bankName: 'Axis Bank Limited',
-    accountNumber: '91402001928374',
-    ifscCode: 'UTIB0000131',
-    branchName: 'Udyog Vihar, Gurugram',
-    address: 'DLF Building No. 5, Tower A, Phase III, Gurugram - 122002',
-    category: ExpenseCategory.TRAVEL_ENTERTAINMENT,
-    isActive: true,
-    createdAt: '2026-03-20T00:00:00Z',
-    updatedAt: '2026-11-15T00:00:00Z',
-  },
-  {
-    id: 'vnd_005',
-    name: 'Blue Dart Express Limited',
-    vendorCode: 'VND-BD-005',
-    companyId: 'comp_002',
-    contactPerson: 'Meenakshi Sen',
-    panNumber: 'AAACB1209L',
-    gstNumber: '27AAACB1209L1Z8',
-    email: 'billing@bluedart.com',
-    phone: '+91 22 2839 6444',
-    bankName: 'Standard Chartered Bank',
-    accountNumber: '22405019283019',
-    ifscCode: 'SCBL0036001',
-    branchName: 'Andheri East, Mumbai',
-    address: 'Blue Dart Centre, Sahar Airport Road, Andheri East, Mumbai - 400099',
-    category: ExpenseCategory.LOGISTICS,
-    isActive: true,
-    createdAt: '2026-04-12T00:00:00Z',
-    updatedAt: '2026-11-12T00:00:00Z',
-  },
-  {
-    id: 'vnd_006',
-    name: 'Urban Clap Facility Services Ltd',
-    vendorCode: 'VND-UC-006',
-    companyId: 'comp_001',
-    contactPerson: 'Nitin Rawat',
-    panNumber: 'AABCU3312M',
-    gstNumber: '07AABCU3312M1Z5',
-    email: 'b2b-support@urbancompany.com',
-    phone: '+91 11 4118 3920',
-    bankName: 'Kotak Mahindra Bank',
-    accountNumber: '49201928374619',
-    ifscCode: 'KKBK0000192',
-    branchName: 'Connaught Place, New Delhi',
-    address: 'Barakhamba Road, Connaught Place, New Delhi - 110001',
-    category: ExpenseCategory.MAINTENANCE,
-    isActive: false,
-    createdAt: '2026-05-01T00:00:00Z',
-    updatedAt: '2026-10-25T00:00:00Z',
-  },
-];
+import { vendorService } from '@/services/vendorService';
+import { companyService } from '@/services/companyService';
 
 export const VendorManagement: React.FC = () => {
-  const [vendors, setVendors] = useState<Vendor[]>(initialVendors);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [vRes, cRes] = await Promise.allSettled([
+        vendorService.getAllVendors(),
+        companyService.getAllCompanies(),
+      ]);
+
+      if (vRes.status === 'fulfilled') {
+        const raw = vRes.value;
+        const list = Array.isArray(raw) ? raw : (raw as any)?.data || (raw as any)?.items || [];
+        setVendors(list);
+      }
+
+      if (cRes.status === 'fulfilled') {
+        const raw = cRes.value;
+        const list = Array.isArray(raw) ? raw : (raw as any)?.data || (raw as any)?.items || [];
+        setCompanies(list);
+      }
+    } catch (err) {
+      console.warn('Could not load vendors:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    loadData();
+  }, []);
   const [companyFilter, setCompanyFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
@@ -216,7 +100,7 @@ export const VendorManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     vendorCode: '',
-    companyId: mockCompanies[0]?.id || '',
+    companyId: companies[0]?.id || '',
     contactPerson: '',
     email: '',
     phone: '',
@@ -234,11 +118,11 @@ export const VendorManagement: React.FC = () => {
 
   // Lookups
   const getCompanyName = (companyId?: string) => {
-    return mockCompanies.find((c) => c.id === companyId)?.name || 'Group Wide';
+    return companies.find((c) => c.id === companyId)?.name || 'Group Wide';
   };
 
   const getCompanyCode = (companyId?: string) => {
-    return mockCompanies.find((c) => c.id === companyId)?.code || 'ALL';
+    return companies.find((c) => c.id === companyId)?.code || 'ALL';
   };
 
   // Mask bank account number
@@ -367,7 +251,7 @@ export const VendorManagement: React.FC = () => {
     setFormData({
       name: '',
       vendorCode: `VND-${Date.now().toString().slice(-4)}`,
-      companyId: mockCompanies[0]?.id || '',
+      companyId: companies[0]?.id || '',
       contactPerson: '',
       email: '',
       phone: '',
@@ -391,7 +275,7 @@ export const VendorManagement: React.FC = () => {
     setFormData({
       name: v.name,
       vendorCode: v.vendorCode,
-      companyId: v.companyId || mockCompanies[0]?.id || '',
+      companyId: v.companyId || companies[0]?.id || '',
       contactPerson: v.contactPerson || '',
       email: v.email || '',
       phone: v.phone || '',
@@ -675,7 +559,7 @@ export const VendorManagement: React.FC = () => {
               className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-xs focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500 outline-hidden text-slate-700 dark:text-slate-300"
             >
               <option value="ALL">All Companies</option>
-              {mockCompanies.map((c) => (
+              {companies.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.code} - {c.name}
                 </option>
@@ -1041,7 +925,7 @@ export const VendorManagement: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-sm text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500"
               >
-                {mockCompanies.map((c) => (
+                {companies.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.code})
                   </option>
@@ -1228,7 +1112,7 @@ export const VendorManagement: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-sm text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500"
                 >
-                  {mockCompanies.map((c) => (
+                  {companies.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.code})
                     </option>

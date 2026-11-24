@@ -75,6 +75,7 @@ class UserDetailResponse(BaseModel):
 
 class UserListResponse(BaseModel):
     items: List[UserDetailResponse]
+    data: Optional[List[UserDetailResponse]] = None
     total: int
     page: int
     page_size: int
@@ -218,8 +219,10 @@ async def list_users(
 
     pages = (total + page_size - 1) // page_size if total > 0 else 1
 
+    user_items = [UserDetailResponse.model_validate(u) for u in users]
     return UserListResponse(
-        items=[UserDetailResponse.model_validate(u) for u in users],
+        items=user_items,
+        data=user_items,
         total=total,
         page=page,
         page_size=page_size,

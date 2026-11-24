@@ -28,125 +28,45 @@ import {
   ConfirmDialog,
 } from '@/components/ui';
 import toast from 'react-hot-toast';
-
-const mockCompanies: Company[] = [
-  {
-    id: 'comp_001',
-    name: 'MV Holdings Private Limited',
-    code: 'MV-CORP',
-    isActive: true,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2026-11-01T00:00:00Z',
-  },
-  {
-    id: 'comp_002',
-    name: 'MV Infrastructure & Logistics Ltd',
-    code: 'MV-INFRA',
-    isActive: true,
-    createdAt: '2025-03-15T00:00:00Z',
-    updatedAt: '2026-11-10T00:00:00Z',
-  },
-  {
-    id: 'comp_003',
-    name: 'MV Digital Technologies Ltd',
-    code: 'MV-TECH',
-    isActive: true,
-    createdAt: '2025-06-01T00:00:00Z',
-    updatedAt: '2026-11-15T00:00:00Z',
-  },
-];
-
-const initialDepartments: Department[] = [
-  {
-    id: 'dept_001',
-    name: 'Procurement & Supply Chain',
-    code: 'DEP-PROC',
-    companyId: 'comp_001',
-    headName: 'Vikram Malhotra',
-    budget: 25000000,
-    currentSpend: 14500000,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'dept_002',
-    name: 'Information Technology & Infra',
-    code: 'DEP-IT',
-    companyId: 'comp_001',
-    headName: 'Sanjay Nair',
-    budget: 15000000,
-    currentSpend: 8900000,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'dept_003',
-    name: 'Corporate Facilities & Administration',
-    code: 'DEP-FAC',
-    companyId: 'comp_001',
-    headName: 'Rajesh Sharma',
-    budget: 10000000,
-    currentSpend: 4200000,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'dept_004',
-    name: 'Sales, Marketing & BD',
-    code: 'DEP-MKT',
-    companyId: 'comp_002',
-    headName: 'Deepak Verma',
-    budget: 12000000,
-    currentSpend: 9100000,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'dept_005',
-    name: 'Finance & Accounts',
-    code: 'DEP-FIN',
-    companyId: 'comp_001',
-    headName: 'Priya Desai',
-    budget: 8000000,
-    currentSpend: 3100000,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'dept_006',
-    name: 'Fleet Logistics & Freight',
-    code: 'DEP-LOG',
-    companyId: 'comp_002',
-    headName: 'Karan Mehra',
-    budget: 18000000,
-    currentSpend: 13400000,
-    isActive: true,
-    createdAt: '2026-02-15T00:00:00Z',
-    updatedAt: '2026-11-15T00:00:00Z',
-  },
-  {
-    id: 'dept_007',
-    name: 'Cloud Platform Engineering',
-    code: 'DEP-ENG',
-    companyId: 'comp_003',
-    headName: 'Ananya Iyer',
-    budget: 20000000,
-    currentSpend: 11200000,
-    isActive: true,
-    createdAt: '2026-03-01T00:00:00Z',
-    updatedAt: '2026-11-18T00:00:00Z',
-  },
-];
+import { departmentService } from '@/services/departmentService';
+import { companyService } from '@/services/companyService';
 
 export const DepartmentManagement: React.FC = () => {
-  const [departments, setDepartments] = useState<Department[]>(initialDepartments);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [companyFilter, setCompanyFilter] = useState<string>('ALL');
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [dRes, cRes] = await Promise.allSettled([
+        departmentService.getDepartments(undefined, { page: 1, pageSize: 100 }),
+        companyService.getAllCompanies(),
+      ]);
+
+      if (dRes.status === 'fulfilled') {
+        const raw = dRes.value;
+        const list = Array.isArray(raw) ? raw : (raw as any)?.data || (raw as any)?.items || [];
+        setDepartments(list);
+      }
+
+      if (cRes.status === 'fulfilled') {
+        const raw = cRes.value;
+        const list = Array.isArray(raw) ? raw : (raw as any)?.data || (raw as any)?.items || [];
+        setCompanies(list);
+      }
+    } catch (err) {
+      console.warn('Could not load departments:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    loadData();
+  }, []);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
   // Sorting
@@ -166,7 +86,7 @@ export const DepartmentManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     code: '',
-    companyId: mockCompanies[0]?.id || '',
+    companyId: companies[0]?.id || '',
     headName: '',
     budget: 0,
     isActive: true,
@@ -175,11 +95,11 @@ export const DepartmentManagement: React.FC = () => {
 
   // Lookups
   const getCompanyName = (companyId?: string) => {
-    return mockCompanies.find((c) => c.id === companyId)?.name || 'Unknown Company';
+    return companies.find((c) => c.id === companyId)?.name || 'Unknown Company';
   };
 
   const getCompanyCode = (companyId?: string) => {
-    return mockCompanies.find((c) => c.id === companyId)?.code || '-';
+    return companies.find((c) => c.id === companyId)?.code || '-';
   };
 
   // Filter & Search
@@ -274,7 +194,7 @@ export const DepartmentManagement: React.FC = () => {
     setFormData({
       name: '',
       code: '',
-      companyId: mockCompanies[0]?.id || '',
+      companyId: companies[0]?.id || '',
       headName: '',
       budget: 10000000,
       isActive: true,
@@ -468,7 +388,7 @@ export const DepartmentManagement: React.FC = () => {
               className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-xs focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500 outline-hidden text-slate-700 dark:text-slate-300"
             >
               <option value="ALL">All Companies</option>
-              {mockCompanies.map((c) => (
+              {companies.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.code} - {c.name}
                 </option>
@@ -800,7 +720,7 @@ export const DepartmentManagement: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-sm text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500"
               >
-                {mockCompanies.map((c) => (
+                {companies.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.code})
                   </option>
@@ -888,7 +808,7 @@ export const DepartmentManagement: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-sm text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500"
                 >
-                  {mockCompanies.map((c) => (
+                  {companies.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.code})
                     </option>

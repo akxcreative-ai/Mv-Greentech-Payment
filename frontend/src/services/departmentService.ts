@@ -16,6 +16,20 @@ function unwrap<T>(data: ApiResponse<T> | T): T {
   return data as T;
 }
 
+function normalizePaginated<T>(raw: any): PaginatedResponse<T> {
+  const unwrapped = unwrap(raw);
+  const items = Array.isArray(unwrapped)
+    ? unwrapped
+    : unwrapped?.items || unwrapped?.data || [];
+  return {
+    data: items,
+    total: unwrapped?.total ?? items.length,
+    page: unwrapped?.page ?? 1,
+    pageSize: unwrapped?.page_size ?? unwrapped?.pageSize ?? items.length,
+    totalPages: unwrapped?.pages ?? unwrapped?.totalPages ?? 1,
+  };
+}
+
 export const departmentService = {
   /**
    * Fetch departments with company filtering and pagination
@@ -29,23 +43,27 @@ export const departmentService = {
       ...pagination,
     };
 
-    const response = await api.get<ApiResponse<PaginatedResponse<Department>> | PaginatedResponse<Department>>(
-      '/departments',
-      { params }
-    );
-
-    return unwrap(response.data);
+    const response = await api.get<any>('/departments', { params });
+    return normalizePaginated<Department>(response.data);
   },
 
   /**
    * Fetch all departments belonging to a specific company
    */
   async getDepartmentsByCompany(companyId: string): Promise<Department[]> {
-    const response = await api.get<ApiResponse<Department[]> | Department[]>('/departments', {
-      params: { companyId, all: true },
-    });
-
-    return unwrap(response.data);
+    try {
+      const response = await api.get<any>('/departments/all', {
+        params: { company_id: companyId },
+      });
+      const d = unwrap(response.data);
+      return Array.isArray(d) ? d : d?.items || d?.data || [];
+    } catch {
+      const fallback = await api.get<any>('/departments', {
+        params: { company_id: companyId, page_size: 100 },
+      });
+      const d = unwrap(fallback.data);
+      return Array.isArray(d) ? d : d?.items || d?.data || [];
+    }
   },
 
   /**

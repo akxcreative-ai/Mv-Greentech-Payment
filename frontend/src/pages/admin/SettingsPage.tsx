@@ -29,33 +29,7 @@ import {
   Badge,
 } from '@/components/ui';
 import toast from 'react-hot-toast';
-
-const mockCompanies: Company[] = [
-  {
-    id: 'comp_001',
-    name: 'MV Holdings Private Limited',
-    code: 'MV-CORP',
-    isActive: true,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2026-11-01T00:00:00Z',
-  },
-  {
-    id: 'comp_002',
-    name: 'MV Infrastructure & Logistics Ltd',
-    code: 'MV-INFRA',
-    isActive: true,
-    createdAt: '2025-03-15T00:00:00Z',
-    updatedAt: '2026-11-10T00:00:00Z',
-  },
-  {
-    id: 'comp_003',
-    name: 'MV Digital Technologies Ltd',
-    code: 'MV-TECH',
-    isActive: true,
-    createdAt: '2025-06-01T00:00:00Z',
-    updatedAt: '2026-11-15T00:00:00Z',
-  },
-];
+import { companyService } from '@/services/companyService';
 
 const initialApprovalRules: ApprovalRule[] = [
   {
@@ -117,6 +91,17 @@ const initialApprovalRules: ApprovalRule[] = [
 
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('general');
+  const [companies, setCompanies] = useState<Company[]>([]);
+
+  React.useEffect(() => {
+    companyService
+      .getAllCompanies()
+      .then((res) => {
+        const list = Array.isArray(res) ? res : (res as any)?.data || (res as any)?.items || [];
+        setCompanies(list);
+      })
+      .catch(() => {});
+  }, []);
 
   // General Settings state
   const [generalSettings, setGeneralSettings] = useState({
@@ -136,7 +121,7 @@ export const SettingsPage: React.FC = () => {
   const [deletingRule, setDeletingRule] = useState<ApprovalRule | null>(null);
 
   const [ruleFormData, setRuleFormData] = useState({
-    companyId: mockCompanies[0]?.id || '',
+    companyId: companies[0]?.id || '',
     minAmount: 0,
     maxAmount: '' as number | string,
     approverRole: Role.APPROVER,
@@ -185,11 +170,11 @@ export const SettingsPage: React.FC = () => {
 
   // Lookups
   const getCompanyName = (companyId?: string) => {
-    return mockCompanies.find((c) => c.id === companyId)?.name || 'All Entities';
+    return companies.find((c) => c.id === companyId)?.name || 'All Entities';
   };
 
   const getCompanyCode = (companyId?: string) => {
-    return mockCompanies.find((c) => c.id === companyId)?.code || 'ALL';
+    return companies.find((c) => c.id === companyId)?.code || 'ALL';
   };
 
   // Save General
@@ -233,7 +218,7 @@ export const SettingsPage: React.FC = () => {
   // Open Create Rule Modal
   const handleOpenCreateRule = () => {
     setRuleFormData({
-      companyId: mockCompanies[0]?.id || '',
+      companyId: companies[0]?.id || '',
       minAmount: 0,
       maxAmount: '',
       approverRole: Role.APPROVER,
@@ -904,7 +889,7 @@ export const SettingsPage: React.FC = () => {
               onChange={(e) => setRuleFormData({ ...ruleFormData, companyId: e.target.value })}
               className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-sm text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500"
             >
-              {mockCompanies.map((c) => (
+              {companies.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name} ({c.code})
                 </option>
@@ -1015,7 +1000,7 @@ export const SettingsPage: React.FC = () => {
                 onChange={(e) => setRuleFormData({ ...ruleFormData, companyId: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-sm text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500"
               >
-                {mockCompanies.map((c) => (
+                {companies.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.code})
                   </option>

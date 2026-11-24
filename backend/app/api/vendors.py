@@ -73,6 +73,7 @@ class VendorBankDetailsResponse(BaseModel):
 
 class VendorListResponse(BaseModel):
     items: List[VendorDetailResponse]
+    data: Optional[List[VendorDetailResponse]] = None
     total: int
     page: int
     page_size: int
@@ -186,6 +187,7 @@ async def list_vendors(
 
     return VendorListResponse(
         items=items,
+        data=items,
         total=total,
         page=page,
         page_size=page_size,
@@ -263,6 +265,27 @@ async def create_vendor(
     resp = VendorDetailResponse.model_validate(vendor)
     resp.masked_bank_account = mask_account(vendor.bank_account_number)
     return resp
+
+
+@router.get(
+    "/all",
+    response_model=List[VendorDetailResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get All Vendors (Unpaginated)",
+)
+async def get_all_vendors(
+    company_id: Optional[uuid.UUID] = Query(None),
+    is_active: Optional[bool] = None,
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(Vendor)
+    if company_id is not None:
+        query = query.where(Vendor.company_id == company_id)
+    if is_active is not None:
+        query = query.where(Vendor.is_active == is_active)
+    result = await db.execute(query.order_by(Vendor.name.asc()))
+    vendors = result.scalars().all()
+    return [VendorDetailResponse.model_validate(v) for v in vendors]
 
 
 @router.get(

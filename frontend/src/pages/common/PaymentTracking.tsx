@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Calendar,
   ArrowRight,
+  ArrowLeft,
   Download,
   Share2,
   Copy,
@@ -57,293 +58,28 @@ const WORKFLOW_STAGES = [
 ];
 
 // Rich fallback dataset for tracking simulation
-const MOCK_TRACKING_REQUESTS: Record<string, PaymentRequest> = {
-  req_001: {
-    id: 'req_001',
-    requestNumber: 'REQ-2026-0891',
-    title: 'Bulk Industrial Raw Material Supply Batch #88',
-    companyId: 'c_01',
-    departmentId: 'd_01',
-    requesterId: 'u_01',
-    vendorId: 'v_01',
-    vendor: {
-      id: 'v_01',
-      name: 'Tata Steel Processing Ltd',
-      vendorCode: 'VND-TAT-01',
-      bankName: 'State Bank of India',
-      accountNumber: '38192001928',
-      ifscCode: 'SBIN0001234',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    company: {
-      id: 'c_01',
-      name: 'MV Agro Industries Ltd',
-      code: 'MVAGRO',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    department: {
-      id: 'd_01',
-      name: 'Procurement & Logistics',
-      code: 'PROC',
-      companyId: 'c_01',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    requester: {
-      id: 'u_01',
-      fullName: 'Amit Patel',
-      email: 'amit.patel@mvgroup.com',
-      role: 'REQUESTER' as any,
-      companyId: 'c_01',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    amount: 1450000,
-    currency: 'INR',
-    expenseCategory: ExpenseCategory.RAW_MATERIALS,
-    paymentMode: PaymentMode.RTGS,
-    priority: Priority.HIGH,
-    status: RequestStatus.UNDER_REVIEW,
-    invoiceNumber: 'INV-TATA-2026-9812',
-    dueDate: '2026-11-28',
-    currentApprovalLevel: 2,
-    totalApprovalLevels: 3,
-    documents: [],
-    approvalRecords: [
-      {
-        id: 'rec_01',
-        paymentRequestId: 'req_001',
-        approverId: 'usr_02',
-        approver: {
-          id: 'usr_02',
-          fullName: 'Rajesh Kulkarni',
-          email: 'rajesh.kulkarni@mvgroup.com',
-          role: 'APPROVER' as any,
-          designation: 'Head of Procurement',
-          companyId: 'c_01',
-          isActive: true,
-          createdAt: '2026-01-01',
-          updatedAt: '2026-01-01',
-        },
-        level: 1,
-        status: ApprovalAction.APPROVED,
-        comments: 'Specifications match PO. Approved.',
-        actionDate: '2026-11-17T11:20:00Z',
-        createdAt: '2026-11-17T11:20:00Z',
-      },
-    ],
-    clarificationMessages: [],
-    createdAt: '2026-11-16T10:30:00Z',
-    updatedAt: '2026-11-17T11:20:00Z',
-  },
-  req_002: {
-    id: 'req_002',
-    requestNumber: 'REQ-2026-0892',
-    title: 'Quarterly Cloud Infrastructure & Security Retainer',
-    companyId: 'c_01',
-    departmentId: 'd_01',
-    requesterId: 'u_01',
-    vendorId: 'v_02',
-    vendor: {
-      id: 'v_02',
-      name: 'Amazon Web Services India',
-      vendorCode: 'VND-AWS-02',
-      bankName: 'HDFC Bank',
-      accountNumber: '9901823712',
-      ifscCode: 'HDFC0000128',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    company: {
-      id: 'c_01',
-      name: 'MV Agro Industries Ltd',
-      code: 'MVAGRO',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    department: {
-      id: 'd_01',
-      name: 'Information Technology',
-      code: 'IT',
-      companyId: 'c_01',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    requester: {
-      id: 'u_01',
-      fullName: 'Amit Patel',
-      email: 'amit.patel@mvgroup.com',
-      role: 'REQUESTER' as any,
-      companyId: 'c_01',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    amount: 385000,
-    currency: 'INR',
-    expenseCategory: ExpenseCategory.IT_SOFTWARE,
-    paymentMode: PaymentMode.NEFT,
-    priority: Priority.NORMAL,
-    status: RequestStatus.APPROVED,
-    invoiceNumber: 'AWS-IND-2026-891',
-    dueDate: '2026-12-05',
-    currentApprovalLevel: 2,
-    totalApprovalLevels: 2,
-    documents: [],
-    approvalRecords: [
-      {
-        id: 'rec_01',
-        paymentRequestId: 'req_002',
-        approverId: 'usr_03',
-        approver: {
-          id: 'usr_03',
-          fullName: 'Sunita Sharma',
-          email: 'sunita.sharma@mvgroup.com',
-          role: 'APPROVER' as any,
-          designation: 'Finance Controller',
-          companyId: 'c_01',
-          isActive: true,
-          createdAt: '2026-01-01',
-          updatedAt: '2026-01-01',
-        },
-        level: 2,
-        status: ApprovalAction.APPROVED,
-        comments: 'Authorized final sign-off.',
-        actionDate: '2026-11-20T14:30:00Z',
-        createdAt: '2026-11-20T14:30:00Z',
-      },
-    ],
-    clarificationMessages: [],
-    createdAt: '2026-11-10T09:00:00Z',
-    updatedAt: '2026-11-20T14:30:00Z',
-  },
-  req_004: {
-    id: 'req_004',
-    requestNumber: 'REQ-2026-0894',
-    title: 'Corporate Travel and Client Hospitality - Bangalore Summit',
-    companyId: 'c_02',
-    departmentId: 'd_01',
-    requesterId: 'u_01',
-    vendorId: 'v_03',
-    vendor: {
-      id: 'v_03',
-      name: 'MakeMyTrip Corporate Solutions',
-      vendorCode: 'VND-MMT-03',
-      bankName: 'ICICI Bank',
-      accountNumber: '00129837192',
-      ifscCode: 'ICIC0000002',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    company: {
-      id: 'c_02',
-      name: 'MV Tech Innovations Ltd',
-      code: 'MVTECH',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    department: {
-      id: 'd_01',
-      name: 'Administration',
-      code: 'ADMIN',
-      companyId: 'c_02',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    requester: {
-      id: 'u_01',
-      fullName: 'Amit Patel',
-      email: 'amit.patel@mvgroup.com',
-      role: 'REQUESTER' as any,
-      companyId: 'c_02',
-      isActive: true,
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-    amount: 112500,
-    currency: 'INR',
-    expenseCategory: ExpenseCategory.TRAVEL_ENTERTAINMENT,
-    paymentMode: PaymentMode.IMPS,
-    priority: Priority.LOW,
-    status: RequestStatus.PAID,
-    invoiceNumber: 'MMT-CORP-0982',
-    dueDate: '2026-11-20',
-    currentApprovalLevel: 1,
-    totalApprovalLevels: 1,
-    paymentRecord: {
-      id: 'pay_01',
-      paymentRequestId: 'req_004',
-      paymentMode: PaymentMode.IMPS,
-      transactionReference: 'VOUCHER-MMT-99812',
-      utrNumber: 'UTR-MMT-9981203',
-      paymentDate: '2026-11-20T17:15:00Z',
-      amountPaid: 112500,
-      processedById: 'usr_acc_01',
-      processedBy: {
-        id: 'usr_acc_01',
-        fullName: 'Priya Desai',
-        email: 'priya.desai@mvgroup.com',
-        role: 'ACCOUNTANT' as any,
-        companyId: 'c_02',
-        isActive: true,
-        createdAt: '2026-01-01',
-        updatedAt: '2026-01-01',
-      },
-      status: 'SUCCESS' as any,
-      createdAt: '2026-11-20T17:15:00Z',
-    },
-    documents: [],
-    approvalRecords: [],
-    clarificationMessages: [],
-    createdAt: '2026-11-08T11:00:00Z',
-    updatedAt: '2026-11-20T17:15:00Z',
-  },
-};
-
 export const PaymentTracking: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   // Search input state for custom query
-  const [searchInput, setSearchInput] = useState(id || 'REQ-2026-0891');
-  const [activeLookupId, setActiveLookupId] = useState(id || 'req_001');
+  const [searchInput, setSearchInput] = useState(id || '');
+  const [activeLookupId, setActiveLookupId] = useState(id || '');
 
   // Query actual backend
   const { data: apiRequest, isLoading } = usePaymentRequest(activeLookupId, {
     enabled: Boolean(activeLookupId),
   });
 
-  // Normalize Request
-  const request: PaymentRequest = useMemo(() => {
+  // Normalize Request without mock fallback
+  const request: PaymentRequest | null = useMemo(() => {
     if (apiRequest) return apiRequest;
-    if (MOCK_TRACKING_REQUESTS[activeLookupId]) {
-      return MOCK_TRACKING_REQUESTS[activeLookupId];
-    }
-    // Search by request number in mock
-    const found = Object.values(MOCK_TRACKING_REQUESTS).find(
-      (r) =>
-        r.requestNumber?.toLowerCase() === activeLookupId.toLowerCase() ||
-        r.id.toLowerCase() === activeLookupId.toLowerCase()
-    );
-    if (found) return found;
-
-    return MOCK_TRACKING_REQUESTS['req_001'];
-  }, [apiRequest, activeLookupId]);
+    return null;
+  }, [apiRequest]);
 
   // Determine Current Step Index (0 to 6)
   const currentStepIndex = useMemo(() => {
+    if (!request) return 0;
     switch (request.status) {
       case RequestStatus.DRAFT:
         return 0;
@@ -360,13 +96,14 @@ export const PaymentTracking: React.FC = () => {
         return 5;
       default:
         // COMPLETED or CANCELLED/REJECTED
-        if (request.status === RequestStatus.REJECTED) return 2; // failed at approval
+        if (request?.status === RequestStatus.REJECTED) return 2; // failed at approval
         return 6;
     }
-  }, [request.status]);
+  }, [request?.status]);
 
   // Stage details builder
   const stageDetails = useMemo(() => {
+    if (!request) return [];
     const reqNumber = request.requestNumber || request.id;
     const vendorName = request.vendor?.name || (request as any).vendor_name || 'Vendor';
     const amount = Number(request.amount ?? (request as any).total_amount ?? 0);
@@ -464,6 +201,50 @@ export const PaymentTracking: React.FC = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success('Tracking URL copied to clipboard!');
   };
+
+  if (!request) {
+    return (
+      <div className="space-y-6 pb-24 max-w-5xl mx-auto">
+        <div className="flex items-center justify-between">
+          <Link
+            to="/payment-requests"
+            className="inline-flex items-center text-xs font-semibold text-slate-500 hover:text-navy-700 dark:hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
+            Back to Payment Requests
+          </Link>
+        </div>
+
+        {/* Search Bar */}
+        <div className="bg-white dark:bg-dark-card border-2 border-emerald-300 rounded-2xl p-6 shadow-xs space-y-4">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Search className="w-5 h-5 text-emerald-600" /> Track Real-Time Payment Status
+          </h2>
+          <form onSubmit={handleSearchSubmit} className="flex gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Enter PR Number (e.g. PR-2026-0001)..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="w-full h-11 pl-10 pr-4 text-sm font-medium rounded-xl border border-slate-300 dark:border-dark-border bg-slate-50 text-slate-900 outline-none focus:border-emerald-600 focus:bg-white transition"
+              />
+              <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+            </div>
+            <Button type="submit" variant="primary" className="h-11 px-6 font-bold bg-emerald-600 hover:bg-emerald-700 text-white">
+              Track
+            </Button>
+          </form>
+        </div>
+
+        <div className="text-center py-16 bg-white dark:bg-dark-card rounded-2xl border border-slate-200">
+          <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="text-sm font-bold text-slate-700">Enter a Payment Request Number above</p>
+          <p className="text-xs text-slate-500 mt-1">Live tracking timeline will show once a valid request is loaded.</p>
+        </div>
+      </div>
+    );
+  }
 
   const priorityStyle = getPriorityColor((request.priority || Priority.NORMAL) as Priority);
   const amount = Number(request.amount ?? (request as any).total_amount ?? 0);

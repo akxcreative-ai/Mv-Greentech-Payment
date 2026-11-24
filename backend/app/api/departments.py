@@ -66,6 +66,7 @@ class DepartmentResponse(BaseModel):
 
 class DepartmentListResponse(BaseModel):
     items: List[DepartmentResponse]
+    data: Optional[List[DepartmentResponse]] = None
     total: int
     page: int
     page_size: int
@@ -134,8 +135,10 @@ async def list_departments(
 
     pages = (total + page_size - 1) // page_size if total > 0 else 1
 
+    dept_list = [DepartmentResponse.model_validate(d) for d in departments]
     return DepartmentListResponse(
-        items=[DepartmentResponse.model_validate(d) for d in departments],
+        items=dept_list,
+        data=dept_list,
         total=total,
         page=page,
         page_size=page_size,
@@ -207,6 +210,27 @@ async def create_department(
     re_q = select(Department).options(selectinload(Department.head)).where(Department.id == dept.id)
     re_res = await db.execute(re_q)
     return DepartmentResponse.model_validate(re_res.scalar_one())
+
+
+@router.get(
+    "/all",
+    response_model=List[DepartmentResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get All Departments (Unpaginated)",
+)
+async def get_all_departments(
+    company_id: Optional[uuid.UUID] = Query(None),
+    is_active: Optional[bool] = None,
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(Department).options(selectinload(Department.head))
+    if company_id is not None:
+        query = query.where(Department.company_id == company_id)
+    if is_active is not None:
+        query = query.where(Department.is_active == is_active)
+    result = await db.execute(query.order_by(Department.name.asc()))
+    departments = result.scalars().all()
+    return [DepartmentResponse.model_validate(d) for d in departments]
 
 
 @router.get(

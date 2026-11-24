@@ -37,229 +37,17 @@ import {
 } from '@/components/ui';
 import toast from 'react-hot-toast';
 import { userService } from '@/services/userService';
+import { companyService } from '@/services/companyService';
+import { departmentService } from '@/services/departmentService';
 import { useAuthStore } from '@/store/authStore';
-
-// Initial Mock Companies & Departments for lookup
-const mockCompanies: Company[] = [
-  {
-    id: 'comp_001',
-    name: 'MV Holdings Private Limited',
-    code: 'MV-CORP',
-    gstNumber: '27AABCM9910E1Z4',
-    panNumber: 'AABCM9910E',
-    address: 'Tower B, Express Trade Towers',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    pincode: '400051',
-    isActive: true,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2026-11-01T00:00:00Z',
-  },
-  {
-    id: 'comp_002',
-    name: 'MV Infrastructure & Logistics Ltd',
-    code: 'MV-INFRA',
-    gstNumber: '06AABCM8821F1Z1',
-    panNumber: 'AABCM8821F',
-    address: 'DLF Cyber City, Phase III',
-    city: 'Gurugram',
-    state: 'Haryana',
-    pincode: '122002',
-    isActive: true,
-    createdAt: '2025-03-15T00:00:00Z',
-    updatedAt: '2026-11-10T00:00:00Z',
-  },
-  {
-    id: 'comp_003',
-    name: 'MV Digital Technologies Ltd',
-    code: 'MV-TECH',
-    gstNumber: '29AABCM7732D1Z8',
-    panNumber: 'AABCM7732D',
-    address: 'Indiranagar 100ft Road',
-    city: 'Bengaluru',
-    state: 'Karnataka',
-    pincode: '560038',
-    isActive: true,
-    createdAt: '2025-06-01T00:00:00Z',
-    updatedAt: '2026-11-15T00:00:00Z',
-  },
-];
-
-const mockDepartments: Department[] = [
-  {
-    id: 'dept_001',
-    name: 'Procurement & Supply Chain',
-    code: 'DEP-PROC',
-    companyId: 'comp_001',
-    headName: 'Vikram Malhotra',
-    budget: 25000000,
-    currentSpend: 14500000,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'dept_002',
-    name: 'Information Technology & Infra',
-    code: 'DEP-IT',
-    companyId: 'comp_001',
-    headName: 'Sanjay Nair',
-    budget: 15000000,
-    currentSpend: 8900000,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'dept_003',
-    name: 'Corporate Facilities & Admin',
-    code: 'DEP-FAC',
-    companyId: 'comp_001',
-    headName: 'Rajesh Sharma',
-    budget: 10000000,
-    currentSpend: 4200000,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'dept_004',
-    name: 'Sales, Marketing & BD',
-    code: 'DEP-MKT',
-    companyId: 'comp_002',
-    headName: 'Deepak Verma',
-    budget: 12000000,
-    currentSpend: 9100000,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'dept_005',
-    name: 'Finance & Accounts',
-    code: 'DEP-FIN',
-    companyId: 'comp_001',
-    headName: 'Priya Desai',
-    budget: 8000000,
-    currentSpend: 3100000,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-];
-
-// Initial mock users list
-const initialUsers: User[] = [
-  {
-    id: 'usr_001',
-    fullName: 'Rajesh Sharma',
-    email: 'admin@mvpayments.com',
-    role: Role.SUPER_ADMIN,
-    companyId: 'comp_001',
-    departmentId: 'dept_005',
-    designation: 'Chief Financial Officer',
-    approvalLimit: 10000000,
-    phoneNumber: '+91 98200 11223',
-    isActive: true,
-    lastLoginAt: '2026-11-23T18:45:00Z',
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'usr_002',
-    fullName: 'Vikram Malhotra',
-    email: 'approver@mvpayments.com',
-    role: Role.APPROVER,
-    companyId: 'comp_001',
-    departmentId: 'dept_001',
-    designation: 'VP Finance & Audit',
-    approvalLimit: 5000000,
-    phoneNumber: '+91 98111 22334',
-    isActive: true,
-    lastLoginAt: '2026-11-23T14:30:00Z',
-    createdAt: '2025-02-15T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'usr_003',
-    fullName: 'Priya Desai',
-    email: 'accountant@mvpayments.com',
-    role: Role.ACCOUNTANT,
-    companyId: 'comp_001',
-    departmentId: 'dept_005',
-    designation: 'Senior Accounts Officer',
-    approvalLimit: 0,
-    phoneNumber: '+91 98333 44556',
-    isActive: true,
-    lastLoginAt: '2026-11-23T11:15:00Z',
-    createdAt: '2025-03-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'usr_004',
-    fullName: 'Amit Patel',
-    email: 'requester@mvpayments.com',
-    role: Role.REQUESTER,
-    companyId: 'comp_001',
-    departmentId: 'dept_001',
-    designation: 'Procurement Specialist',
-    approvalLimit: 0,
-    phoneNumber: '+91 98444 55667',
-    isActive: true,
-    lastLoginAt: '2026-11-22T09:20:00Z',
-    createdAt: '2025-04-10T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'usr_005',
-    fullName: 'Sunita Rao',
-    email: 'sunita.rao@mvpayments.com',
-    role: Role.ADMIN,
-    companyId: 'comp_002',
-    departmentId: 'dept_004',
-    designation: 'Operations Director',
-    approvalLimit: 2500000,
-    phoneNumber: '+91 98555 66778',
-    isActive: true,
-    lastLoginAt: '2026-11-21T16:00:00Z',
-    createdAt: '2025-05-12T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'usr_006',
-    fullName: 'Deepak Verma',
-    email: 'deepak.verma@mvpayments.com',
-    role: Role.DIRECTOR,
-    companyId: 'comp_002',
-    departmentId: 'dept_004',
-    designation: 'Managing Director',
-    approvalLimit: 50000000,
-    phoneNumber: '+91 98666 77889',
-    isActive: true,
-    lastLoginAt: '2026-11-20T12:00:00Z',
-    createdAt: '2025-06-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'usr_007',
-    fullName: 'Ananya Iyer',
-    email: 'ananya.iyer@mvpayments.com',
-    role: Role.MANAGEMENT,
-    companyId: 'comp_003',
-    departmentId: 'dept_002',
-    designation: 'VP Engineering & Tech',
-    approvalLimit: 7500000,
-    phoneNumber: '+91 98777 88990',
-    isActive: false,
-    lastLoginAt: '2026-10-15T08:30:00Z',
-    createdAt: '2025-07-20T00:00:00Z',
-    updatedAt: '2026-11-10T00:00:00Z',
-  },
-];
 
 export const UserManagement: React.FC = () => {
   const { user: currentUser } = useAuthStore();
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -281,42 +69,61 @@ export const UserManagement: React.FC = () => {
   const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copiedPassword, setCopiedPassword] = useState(false);
 
-  // Load real users from backend API
+  // Function to load all live real data
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [uRes, cRes, dRes] = await Promise.allSettled([
+        userService.getUsers(undefined, { page: 1, pageSize: 100 }),
+        companyService.getAllCompanies(),
+        departmentService.getDepartments(undefined, { page: 1, pageSize: 100 }),
+      ]);
+
+      if (uRes.status === 'fulfilled') {
+        const raw = uRes.value;
+        const list = Array.isArray(raw) ? raw : (raw as any)?.data || (raw as any)?.items || [];
+        setUsers(
+          list.map((u: any) => ({
+            ...u,
+            fullName:
+              u.fullName ||
+              u.full_name ||
+              `${u.first_name || ''} ${u.last_name || ''}`.trim() ||
+              u.email,
+            role: (u.role as any)?.name
+              ? (u.role as any).name.toUpperCase()
+              : u.role || Role.REQUESTER,
+            companyId: u.companyId || u.company_id || '',
+            departmentId: u.departmentId || u.department_id || '',
+            isActive: u.isActive !== false && u.is_active !== false,
+          }))
+        );
+      }
+
+      if (cRes.status === 'fulfilled') {
+        const raw = cRes.value;
+        const list = Array.isArray(raw) ? raw : (raw as any)?.data || (raw as any)?.items || [];
+        setCompanies(list);
+      }
+
+      if (dRes.status === 'fulfilled') {
+        const raw = dRes.value;
+        const list = Array.isArray(raw) ? raw : (raw as any)?.data || (raw as any)?.items || [];
+        setDepartments(list);
+      }
+    } catch (err) {
+      console.warn('Error loading real admin users:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let isMounted = true;
-    userService
-      .getUsers(undefined, { page: 1, limit: 100 })
-      .then((res: any) => {
-        if (!isMounted) return;
-        const list = Array.isArray(res) ? res : res?.items || [];
-        if (list.length > 0) {
-          setUsers(
-            list.map((u: any) => ({
-              ...u,
-              fullName:
-                u.fullName ||
-                u.full_name ||
-                `${u.first_name || ''} ${u.last_name || ''}`.trim() ||
-                u.email,
-              role: (u.role as any)?.name
-                ? (u.role as any).name.toUpperCase()
-                : u.role || Role.REQUESTER,
-              companyId: u.companyId || u.company_id || 'comp_mv_global',
-              departmentId: u.departmentId || u.department_id || '',
-              isActive: u.isActive !== false && u.is_active !== false,
-            }))
-          );
-        }
-      })
-      .catch((err) => {
-        console.warn('Could not load remote users, showing cached users:', err);
-      });
-    return () => {
-      isMounted = false;
-    };
+    loadData();
   }, []);
 
   // User form state
@@ -324,8 +131,8 @@ export const UserManagement: React.FC = () => {
     fullName: '',
     email: '',
     role: Role.REQUESTER,
-    companyId: mockCompanies[0]?.id || '',
-    departmentId: mockDepartments[0]?.id || '',
+    companyId: '',
+    departmentId: '',
     designation: '',
     approvalLimit: 0,
     phoneNumber: '',
@@ -336,15 +143,15 @@ export const UserManagement: React.FC = () => {
 
   // Helper lookups
   const getCompanyName = (companyId?: string) => {
-    return mockCompanies.find((c) => c.id === companyId)?.name || 'Unknown Company';
+    return companies.find((c) => c.id === companyId)?.name || 'Unknown Company';
   };
 
   const getCompanyCode = (companyId?: string) => {
-    return mockCompanies.find((c) => c.id === companyId)?.code || '-';
+    return companies.find((c) => c.id === companyId)?.code || '-';
   };
 
   const getDepartmentName = (departmentId?: string) => {
-    return mockDepartments.find((d) => d.id === departmentId)?.name || '-';
+    return departments.find((d) => d.id === departmentId)?.name || '-';
   };
 
   // Role badge color helper
@@ -472,8 +279,8 @@ export const UserManagement: React.FC = () => {
       fullName: '',
       email: '',
       role: Role.REQUESTER,
-      companyId: mockCompanies[0]?.id || '',
-      departmentId: mockDepartments[0]?.id || '',
+      companyId: companies[0]?.id || '',
+      departmentId: departments[0]?.id || '',
       designation: '',
       approvalLimit: 0,
       phoneNumber: '',
@@ -503,33 +310,36 @@ export const UserManagement: React.FC = () => {
   };
 
   // Save new user
-  const handleSaveCreateUser = (e: React.FormEvent) => {
+  const handleSaveCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm(false)) return;
 
-    const newUser: User = {
-      id: `usr_${Date.now()}`,
-      fullName: formData.fullName.trim(),
-      email: formData.email.trim().toLowerCase(),
-      role: formData.role,
-      companyId: formData.companyId,
-      departmentId: formData.departmentId || undefined,
-      designation: formData.designation.trim() || undefined,
-      approvalLimit: Number(formData.approvalLimit) || 0,
-      phoneNumber: formData.phoneNumber.trim() || undefined,
-      isActive: formData.isActive,
-      lastLoginAt: undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    try {
+      setIsSubmitting(true);
+      await userService.createUser({
+        email: formData.email.trim().toLowerCase(),
+        fullName: formData.fullName.trim(),
+        password: formData.password || generateRandomPassword(),
+        role: formData.role,
+        companyId: formData.companyId || (companies[0]?.id ?? ''),
+        departmentId: formData.departmentId || undefined,
+        designation: formData.designation.trim() || undefined,
+        approvalLimit: Number(formData.approvalLimit) || 0,
+        phoneNumber: formData.phoneNumber.trim() || undefined,
+      });
 
-    setUsers((prev) => [newUser, ...prev]);
-    setIsCreateModalOpen(false);
-    toast.success(`User ${newUser.fullName} created successfully.`);
+      toast.success(`User ${formData.fullName} created successfully.`);
+      setIsCreateModalOpen(false);
+      await loadData();
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to create user on server');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Save edit user
-  const handleSaveEditUser = (e: React.FormEvent) => {
+  const handleSaveEditUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
     if (!validateForm(true)) return;
@@ -540,29 +350,26 @@ export const UserManagement: React.FC = () => {
       return;
     }
 
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === editingUser.id) {
-          return {
-            ...u,
-            fullName: formData.fullName.trim(),
-            email: formData.email.trim().toLowerCase(),
-            role: formData.role,
-            companyId: formData.companyId,
-            departmentId: formData.departmentId || undefined,
-            designation: formData.designation.trim() || undefined,
-            approvalLimit: Number(formData.approvalLimit) || 0,
-            phoneNumber: formData.phoneNumber.trim() || undefined,
-            isActive: formData.isActive,
-            updatedAt: new Date().toISOString(),
-          };
-        }
-        return u;
-      })
-    );
+    try {
+      setIsSubmitting(true);
+      await userService.updateUser(editingUser.id, {
+        fullName: formData.fullName.trim(),
+        role: formData.role,
+        companyId: formData.companyId,
+        departmentId: formData.departmentId || undefined,
+        designation: formData.designation.trim() || undefined,
+        approvalLimit: Number(formData.approvalLimit) || 0,
+        phoneNumber: formData.phoneNumber.trim() || undefined,
+      });
 
-    setEditingUser(null);
-    toast.success(`User ${formData.fullName} updated successfully.`);
+      toast.success(`User ${formData.fullName} updated successfully.`);
+      setEditingUser(null);
+      await loadData();
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to update user on server');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Toggle user active status
@@ -576,11 +383,17 @@ export const UserManagement: React.FC = () => {
     }
 
     const nextStatus = !statusToggleUser.isActive;
-    setUsers((prev) =>
-      prev.map((u) => (u.id === statusToggleUser.id ? { ...u, isActive: nextStatus, updatedAt: new Date().toISOString() } : u))
-    );
-
-    toast.success(`User ${statusToggleUser.fullName} is now ${nextStatus ? 'Active' : 'Deactivated'}.`);
+    try {
+      userService.toggleUserStatus(statusToggleUser.id, nextStatus).then(() => {
+        loadData();
+      });
+      setUsers((prev) =>
+        prev.map((u) => (u.id === statusToggleUser.id ? { ...u, isActive: nextStatus, updatedAt: new Date().toISOString() } : u))
+      );
+      toast.success(`User ${statusToggleUser.fullName} is now ${nextStatus ? 'Active' : 'Deactivated'}.`);
+    } catch {
+      toast.error('Could not update user status on server');
+    }
     setStatusToggleUser(null);
   };
 
@@ -776,7 +589,7 @@ export const UserManagement: React.FC = () => {
               className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-xs focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500 outline-hidden text-slate-700 dark:text-slate-300"
             >
               <option value="ALL">All Companies</option>
-              {mockCompanies.map((c) => (
+              {companies.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.code} - {c.name}
                 </option>
@@ -1193,7 +1006,7 @@ export const UserManagement: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-sm text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500"
               >
-                {mockCompanies.map((c) => (
+                {companies.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.code})
                   </option>
@@ -1214,7 +1027,7 @@ export const UserManagement: React.FC = () => {
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-sm text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500"
               >
                 <option value="">No Department Assigned</option>
-                {mockDepartments.map((d) => (
+                {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name} ({d.code})
                   </option>
@@ -1361,7 +1174,7 @@ export const UserManagement: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-sm text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500"
                 >
-                  {mockCompanies.map((c) => (
+                  {companies.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.code})
                     </option>
@@ -1381,7 +1194,7 @@ export const UserManagement: React.FC = () => {
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-dark-border rounded-lg text-sm text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-navy-600 dark:focus:ring-cyan-500"
                 >
                   <option value="">No Department Assigned</option>
-                  {mockDepartments.map((d) => (
+                  {departments.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.name} ({d.code})
                     </option>

@@ -16,6 +16,20 @@ function unwrap<T>(data: ApiResponse<T> | T): T {
   return data as T;
 }
 
+function normalizePaginated<T>(raw: any): PaginatedResponse<T> {
+  const unwrapped = unwrap(raw);
+  const items = Array.isArray(unwrapped)
+    ? unwrapped
+    : unwrapped?.items || unwrapped?.data || [];
+  return {
+    data: items,
+    total: unwrapped?.total ?? items.length,
+    page: unwrapped?.page ?? 1,
+    pageSize: unwrapped?.page_size ?? unwrapped?.pageSize ?? items.length,
+    totalPages: unwrapped?.pages ?? unwrapped?.totalPages ?? 1,
+  };
+}
+
 export const userService = {
   /**
    * Fetch users with role, department, company filters and pagination
@@ -29,12 +43,8 @@ export const userService = {
       ...pagination,
     };
 
-    const response = await api.get<ApiResponse<PaginatedResponse<User>> | PaginatedResponse<User>>(
-      '/users',
-      { params }
-    );
-
-    return unwrap(response.data);
+    const response = await api.get<any>('/users', { params });
+    return normalizePaginated<User>(response.data);
   },
 
   /**

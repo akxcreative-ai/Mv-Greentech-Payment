@@ -30,6 +30,9 @@ import {
   PaymentMode,
   Priority,
   DuplicateCheckResult,
+  Company,
+  Vendor,
+  Department,
 } from '@/types';
 import { formatCurrency, formatFileSize, numberToIndianWords } from '@/utils/format';
 import { useAllCompanies } from '@/hooks/useCompanies';
@@ -101,8 +104,18 @@ export const CreatePaymentRequest: React.FC = () => {
   const { user } = useAuthStore();
 
   // Queries for dynamic selects
-  const { data: companies = [], isLoading: isLoadingCompanies } = useAllCompanies();
-  const { data: vendors = [], isLoading: isLoadingVendors } = useAllVendors();
+  const { data: companiesRaw, isLoading: isLoadingCompanies } = useAllCompanies();
+  const companies: Company[] = useMemo(() => {
+    if (Array.isArray(companiesRaw)) return companiesRaw;
+    return (companiesRaw as any)?.data || (companiesRaw as any)?.items || [];
+  }, [companiesRaw]);
+
+  const { data: vendorsRaw, isLoading: isLoadingVendors } = useAllVendors();
+  const vendors: Vendor[] = useMemo(() => {
+    if (Array.isArray(vendorsRaw)) return vendorsRaw;
+    return (vendorsRaw as any)?.data || (vendorsRaw as any)?.items || [];
+  }, [vendorsRaw]);
+
   const { data: usersData } = useUsers({ pageSize: 100 });
 
   // Form State
@@ -123,10 +136,14 @@ export const CreatePaymentRequest: React.FC = () => {
   const [overrideReasonError, setOverrideReasonError] = useState<string>('');
 
   // Fetch departments filtered by company
-  const { data: departments = [], isLoading: isLoadingDepartments } = useDepartmentsByCompany(
+  const { data: departmentsRaw, isLoading: isLoadingDepartments } = useDepartmentsByCompany(
     selectedCompanyId,
     { enabled: Boolean(selectedCompanyId) }
   );
+  const departments: Department[] = useMemo(() => {
+    if (Array.isArray(departmentsRaw)) return departmentsRaw;
+    return (departmentsRaw as any)?.data || (departmentsRaw as any)?.items || [];
+  }, [departmentsRaw]);
 
   const {
     register,

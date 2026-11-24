@@ -36,86 +36,6 @@ import {
 import { formatDateTime } from '@/utils/format';
 
 // Fallback enterprise notifications for comprehensive presentation
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: 'notif-1',
-    userId: 'usr-1',
-    type: NotificationType.APPROVAL_REQUIRED,
-    title: 'Action Required: Level 2 Financial Approval',
-    message:
-      'Payment voucher #REQ-2026-0891 for ₹14,50,000 (Dell India - IT Servers) requires your executive sign-off.',
-    isRead: false,
-    link: '/approvals/req-001',
-    createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 mins ago
-  },
-  {
-    id: 'notif-2',
-    userId: 'usr-1',
-    type: NotificationType.CLARIFICATION_REQUESTED,
-    title: 'Clarification Inquiry on REQ-2026-0893',
-    message:
-      'Approver Vikram Malhotra requested supplementary Purchase Order quotation files.',
-    isRead: false,
-    link: '/payment-requests/req-002',
-    createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // 2 hours ago
-  },
-  {
-    id: 'notif-3',
-    userId: 'usr-1',
-    type: NotificationType.PAYMENT_PROCESSED,
-    title: 'Disbursement Completed via RTGS',
-    message:
-      '₹18,75,000 has been disbursed to Tata Telecommunications. Bank UTR: #HDFC0001928491.',
-    isRead: false,
-    link: '/payments',
-    createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(), // 6 hours ago
-  },
-  {
-    id: 'notif-4',
-    userId: 'usr-1',
-    type: NotificationType.PAYMENT_APPROVED,
-    title: 'Requisition Fully Authorized',
-    message:
-      'Requisition #REQ-2026-0870 for ₹3,40,000 has been signed off by Director Rajesh Sharma.',
-    isRead: true,
-    link: '/payment-requests/req-003',
-    createdAt: new Date(Date.now() - 1000 * 3600 * 24).toISOString(), // 1 day ago
-  },
-  {
-    id: 'notif-5',
-    userId: 'usr-1',
-    type: NotificationType.PAYMENT_REJECTED,
-    title: 'Requisition Rejected by Approver',
-    message:
-      'Requisition #REQ-2026-0865 was rejected. Reason: "Exceeds quarterly discretionary budget".',
-    isRead: true,
-    link: '/payment-requests/req-004',
-    createdAt: new Date(Date.now() - 1000 * 3600 * 48).toISOString(), // 2 days ago
-  },
-  {
-    id: 'notif-6',
-    userId: 'usr-1',
-    type: NotificationType.SYSTEM_ALERT,
-    title: 'Quarterly Audit Compliance Notice',
-    message:
-      'Financial year Q3 closing reconciliation window opens this Friday. Review pending vouchers.',
-    isRead: true,
-    link: '/reports',
-    createdAt: new Date(Date.now() - 1000 * 3600 * 72).toISOString(), // 3 days ago
-  },
-  {
-    id: 'notif-7',
-    userId: 'usr-1',
-    type: NotificationType.PAYMENT_FAILED,
-    title: 'NEFT Transaction Returned',
-    message:
-      'Payment #TXN-8819 for ₹54,000 failed due to incorrect IFSC code. Please update vendor details.',
-    isRead: true,
-    link: '/payments',
-    createdAt: new Date(Date.now() - 1000 * 3600 * 96).toISOString(), // 4 days ago
-  },
-];
-
 export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -123,7 +43,7 @@ export const NotificationsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
-  const [localNotifications, setLocalNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const [localNotifications, setLocalNotifications] = useState<Notification[]>([]);
 
   // TanStack Query Hooks
   const { data: apiResponse } = useNotifications(
@@ -135,10 +55,10 @@ export const NotificationsPage: React.FC = () => {
   const markAllMutation = useMarkAllNotificationsAsRead();
   const deleteMutation = useDeleteNotification();
 
-  // Combine API data or fallback
+  // Real API notifications without mock fallback
   const allItems: Notification[] = useMemo(() => {
-    if (apiResponse && apiResponse.data && apiResponse.data.length > 0) {
-      return apiResponse.data;
+    if (apiResponse && apiResponse.data) {
+      return Array.isArray(apiResponse.data) ? apiResponse.data : (apiResponse.data as any).items || [];
     }
     return localNotifications;
   }, [apiResponse, localNotifications]);

@@ -26,6 +26,7 @@ import {
   Briefcase,
   AlertCircle,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import {
   Button,
@@ -70,224 +71,6 @@ import {
 } from '@/utils/format';
 import { useAuthStore } from '@/store/authStore';
 
-// Rich fallback mock for development and testing
-const FALLBACK_DETAIL: PaymentRequest = {
-  id: 'req_001',
-  requestNumber: 'REQ-2026-0891',
-  title: 'Bulk Industrial Raw Material Supply Batch #88',
-  description:
-    'Quarterly scheduled delivery of hot-rolled industrial grade steel sheets for manufacturing Plant #2. Pricing and delivery milestones audited in accordance with Master Services Agreement MSA-2024-TATA.',
-  companyId: 'c_01',
-  company: {
-    id: 'c_01',
-    name: 'MV Agro Industries Ltd',
-    code: 'MVAGRO',
-    gstNumber: '27AABCM8891J1ZP',
-    panNumber: 'AABCM8891J',
-    address: 'Plot 42, MIDC Industrial Area, Pune, Maharashtra 411018',
-    isActive: true,
-    createdAt: '2026-01-01',
-    updatedAt: '2026-01-01',
-  },
-  departmentId: 'd_01',
-  department: {
-    id: 'd_01',
-    name: 'Procurement & Logistics',
-    code: 'PROC',
-    companyId: 'c_01',
-    budget: 50000000,
-    currentSpend: 31200000,
-    isActive: true,
-    createdAt: '2026-01-01',
-    updatedAt: '2026-01-01',
-  },
-  requesterId: 'u_01',
-  requester: {
-    id: 'u_01',
-    fullName: 'Amit Patel',
-    email: 'amit.patel@mvgroup.com',
-    role: 'REQUESTER' as any,
-    designation: 'Senior Procurement Manager',
-    companyId: 'c_01',
-    isActive: true,
-    createdAt: '2026-01-01',
-    updatedAt: '2026-01-01',
-  },
-  vendorId: 'v_01',
-  vendor: {
-    id: 'v_01',
-    name: 'Tata Steel Processing Ltd',
-    vendorCode: 'VND-TAT-01',
-    gstNumber: '27AABCT2819E1ZM',
-    panNumber: 'AABCT2819E',
-    email: 'accounts@tatasteelproc.com',
-    phone: '+91 22 6665 8282',
-    bankName: 'State Bank of India',
-    accountNumber: '38192001928',
-    ifscCode: 'SBIN0001234',
-    branchName: 'Nariman Point Corporate Branch, Mumbai',
-    address: 'Bombay House, 24 Homi Mody Street, Fort, Mumbai 400001',
-    isActive: true,
-    createdAt: '2026-01-01',
-    updatedAt: '2026-01-01',
-  },
-  amount: 1450000,
-  currency: 'INR',
-  expenseCategory: ExpenseCategory.RAW_MATERIALS,
-  paymentMode: PaymentMode.RTGS,
-  priority: Priority.HIGH,
-  status: RequestStatus.UNDER_REVIEW,
-  invoiceNumber: 'INV-TATA-2026-9812',
-  invoiceDate: '2026-11-15',
-  dueDate: '2026-11-28',
-  currentApprovalLevel: 2,
-  totalApprovalLevels: 3,
-  remarks: 'Vendor offers a 1.5% prompt payment rebate if settled on or before 28th Nov 2026.',
-  documents: [
-    {
-      id: 'doc_01',
-      paymentRequestId: 'req_001',
-      fileName: 'Tax_Invoice_INV-TATA-9812.pdf',
-      originalName: 'Tax_Invoice_INV-TATA-9812.pdf',
-      fileUrl: '/uploads/invoices/tax_invoice_9812.pdf',
-      fileSize: 2450000,
-      fileType: 'application/pdf',
-      mimeType: 'application/pdf',
-      uploadedBy: 'Amit Patel',
-      uploadedAt: '2026-11-16T10:32:00Z',
-    },
-    {
-      id: 'doc_02',
-      paymentRequestId: 'req_001',
-      fileName: 'Goods_Receipt_Note_GRN-8812.pdf',
-      originalName: 'Goods_Receipt_Note_GRN-8812.pdf',
-      fileUrl: '/uploads/grn/grn_8812.pdf',
-      fileSize: 1120000,
-      fileType: 'application/pdf',
-      mimeType: 'application/pdf',
-      uploadedBy: 'Amit Patel',
-      uploadedAt: '2026-11-16T10:33:00Z',
-    },
-    {
-      id: 'doc_03',
-      paymentRequestId: 'req_001',
-      fileName: 'Quality_Inspection_Certificate.pdf',
-      originalName: 'Quality_Inspection_Certificate.pdf',
-      fileUrl: '/uploads/quality/cert_8812.pdf',
-      fileSize: 890000,
-      fileType: 'application/pdf',
-      mimeType: 'application/pdf',
-      uploadedBy: 'Amit Patel',
-      uploadedAt: '2026-11-16T10:35:00Z',
-    },
-  ],
-  approvalRecords: [
-    {
-      id: 'app_rec_01',
-      paymentRequestId: 'req_001',
-      approverId: 'usr_02',
-      approver: {
-        id: 'usr_02',
-        fullName: 'Rajesh Kulkarni',
-        email: 'rajesh.kulkarni@mvgroup.com',
-        role: 'APPROVER' as any,
-        companyId: 'c_01',
-        designation: 'Head of Procurement (Level 1)',
-        isActive: true,
-        createdAt: '2026-01-01',
-        updatedAt: '2026-01-01',
-      },
-      level: 1,
-      status: ApprovalAction.APPROVED,
-      comments: 'Physical goods verified at Plant 2 warehouse. Specifications match Purchase Order #8812.',
-      actionDate: '2026-11-17T11:20:00Z',
-      createdAt: '2026-11-17T11:20:00Z',
-    },
-    {
-      id: 'app_rec_02',
-      paymentRequestId: 'req_001',
-      approverId: 'usr_03',
-      approver: {
-        id: 'usr_03',
-        fullName: 'Sunita Sharma',
-        email: 'sunita.sharma@mvgroup.com',
-        role: 'APPROVER' as any,
-        companyId: 'c_01',
-        designation: 'Finance & Tax Controller (Level 2)',
-        isActive: true,
-        createdAt: '2026-01-01',
-        updatedAt: '2026-01-01',
-      },
-      level: 2,
-      status: ApprovalAction.PENDING,
-      comments: undefined,
-      actionDate: undefined,
-      createdAt: '2026-11-17T11:20:00Z',
-    },
-    {
-      id: 'app_rec_03',
-      paymentRequestId: 'req_001',
-      approverId: 'usr_04',
-      approver: {
-        id: 'usr_04',
-        fullName: 'Vikramaditya Singhania',
-        email: 'vikram.singhania@mvgroup.com',
-        role: 'DIRECTOR' as any,
-        companyId: 'c_01',
-        designation: 'Executive Director (Level 3 - Final)',
-        isActive: true,
-        createdAt: '2026-01-01',
-        updatedAt: '2026-01-01',
-      },
-      level: 3,
-      status: ApprovalAction.PENDING,
-      comments: undefined,
-      actionDate: undefined,
-      createdAt: '2026-11-17T11:20:00Z',
-    },
-  ],
-  clarificationMessages: [
-    {
-      id: 'msg_01',
-      paymentRequestId: 'req_001',
-      senderId: 'usr_03',
-      sender: {
-        id: 'usr_03',
-        fullName: 'Sunita Sharma',
-        email: 'sunita.sharma@mvgroup.com',
-        role: 'APPROVER' as any,
-        companyId: 'c_01',
-        designation: 'Finance Controller',
-        isActive: true,
-        createdAt: '2026-01-01',
-        updatedAt: '2026-01-01',
-      },
-      message: 'Can you please confirm if the 2% TDS under Section 194C is deducted on this invoice gross value?',
-      createdAt: '2026-11-18T14:15:00Z',
-    },
-    {
-      id: 'msg_02',
-      paymentRequestId: 'req_001',
-      senderId: 'u_01',
-      sender: {
-        id: 'u_01',
-        fullName: 'Amit Patel',
-        email: 'amit.patel@mvgroup.com',
-        role: 'REQUESTER' as any,
-        companyId: 'c_01',
-        designation: 'Senior Procurement Manager',
-        isActive: true,
-        createdAt: '2026-01-01',
-        updatedAt: '2026-01-01',
-      },
-      message: 'Yes, TDS at 2% (₹29,000) has been factored into the accounting voucher. Net payable is ₹14,21,000.',
-      createdAt: '2026-11-18T15:40:00Z',
-    },
-  ],
-  createdAt: '2026-11-16T10:30:00Z',
-  updatedAt: '2026-11-18T15:40:00Z',
-};
-
 export const ApprovalDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -328,28 +111,28 @@ export const ApprovalDetail: React.FC = () => {
   const [previewDoc, setPreviewDoc] = useState<PaymentRequestDocument | null>(null);
 
   // Normalize Request Data
-  const request: PaymentRequest = useMemo(() => {
+  const request: PaymentRequest | null = useMemo(() => {
     if (apiRequest) return apiRequest;
-    return FALLBACK_DETAIL;
+    return null;
   }, [apiRequest]);
 
   const approvalHistory: ApprovalRecord[] = useMemo(() => {
     if (historyData && historyData.length > 0) return historyData;
-    if (request.approvalRecords && request.approvalRecords.length > 0) return request.approvalRecords;
-    return FALLBACK_DETAIL.approvalRecords;
+    if (request?.approvalRecords && request.approvalRecords.length > 0) return request.approvalRecords;
+    return [];
   }, [historyData, request]);
 
   const clarificationList: ClarificationMessage[] = useMemo(() => {
-    if (request.clarificationMessages && request.clarificationMessages.length > 0) {
+    if (request?.clarificationMessages && request.clarificationMessages.length > 0) {
       return request.clarificationMessages;
     }
-    return FALLBACK_DETAIL.clarificationMessages;
+    return [];
   }, [request]);
 
-  const priorityStyle = getPriorityColor((request.priority || Priority.NORMAL) as Priority);
-  const amount = Number(request.amount ?? (request as any).total_amount ?? 0);
+  const priorityStyle = getPriorityColor((request?.priority || Priority.NORMAL) as Priority);
+  const amount = Number(request?.amount ?? (request as any)?.total_amount ?? 0);
   const remainingBudget =
-    request.department?.budget && request.department?.currentSpend
+    request?.department?.budget && request?.department?.currentSpend
       ? request.department.budget - request.department.currentSpend - amount
       : null;
 
@@ -361,6 +144,7 @@ export const ApprovalDetail: React.FC = () => {
   };
 
   const handleConfirmApprove = async () => {
+    if (!request) return;
     try {
       const finalAdjAmount = adjustedAmount ? parseFloat(adjustedAmount) : undefined;
       await approveMutation.mutateAsync({
@@ -382,6 +166,7 @@ export const ApprovalDetail: React.FC = () => {
   };
 
   const handleConfirmReject = async () => {
+    if (!request) return;
     if (!rejectReason.trim()) {
       setRejectError('Rejection justification is mandatory for compliance audit trail.');
       return;
@@ -410,6 +195,7 @@ export const ApprovalDetail: React.FC = () => {
   };
 
   const handleConfirmClarify = async () => {
+    if (!request) return;
     if (!clarifyMessage.trim()) {
       setClarifyError('Please enter your question or request for information.');
       return;
@@ -428,6 +214,7 @@ export const ApprovalDetail: React.FC = () => {
   };
 
   const handleSendReply = async () => {
+    if (!request) return;
     if (!replyMessage.trim()) return;
     try {
       await respondClarifyMutation.mutateAsync({
@@ -441,12 +228,34 @@ export const ApprovalDetail: React.FC = () => {
   };
 
   const handleDownloadDoc = (doc: PaymentRequestDocument) => {
+    if (!request) return;
     downloadMutation.mutate({
       requestId: request.id,
       docId: doc.id,
       filename: doc.fileName || doc.originalName,
     });
   };
+
+  if (!request && !isRequestLoading) {
+    return (
+      <div className="max-w-md mx-auto my-12 text-center p-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 shadow-sm">
+        <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+        <h3 className="text-lg font-bold text-slate-800 dark:text-white">Payment Request Not Found</h3>
+        <p className="text-xs text-slate-500 mt-1">The requested voucher does not exist or has been removed.</p>
+        <Link to="/approvals" className="mt-4 inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700">
+          <ArrowLeft className="w-4 h-4 mr-1.5" /> Return to Approvals
+        </Link>
+      </div>
+    );
+  }
+
+  if (!request) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-28 max-w-6xl mx-auto">

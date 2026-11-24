@@ -16,6 +16,20 @@ function unwrap<T>(data: ApiResponse<T> | T): T {
   return data as T;
 }
 
+function normalizePaginated<T>(raw: any): PaginatedResponse<T> {
+  const unwrapped = unwrap(raw);
+  const items = Array.isArray(unwrapped)
+    ? unwrapped
+    : unwrapped?.items || unwrapped?.data || [];
+  return {
+    data: items,
+    total: unwrapped?.total ?? items.length,
+    page: unwrapped?.page ?? 1,
+    pageSize: unwrapped?.page_size ?? unwrapped?.pageSize ?? items.length,
+    totalPages: unwrapped?.pages ?? unwrapped?.totalPages ?? 1,
+  };
+}
+
 export const companyService = {
   /**
    * Fetch companies with pagination and optional search
@@ -29,21 +43,23 @@ export const companyService = {
       ...pagination,
     };
 
-    const response = await api.get<ApiResponse<PaginatedResponse<Company>> | PaginatedResponse<Company>>(
-      '/companies',
-      { params }
-    );
-
-    return unwrap(response.data);
+    const response = await api.get<any>('/companies', { params });
+    return normalizePaginated<Company>(response.data);
   },
 
   /**
    * Fetch all companies (without pagination, for dropdown selects)
    */
   async getAllCompanies(): Promise<Company[]> {
-    const response = await api.get<ApiResponse<Company[]> | Company[]>('/companies/all');
-
-    return unwrap(response.data);
+    try {
+      const response = await api.get<any>('/companies/all');
+      const d = unwrap(response.data);
+      return Array.isArray(d) ? d : d?.items || d?.data || [];
+    } catch {
+      const fallback = await api.get<any>('/companies?page_size=100');
+      const d = unwrap(fallback.data);
+      return Array.isArray(d) ? d : d?.items || d?.data || [];
+    }
   },
 
   /**

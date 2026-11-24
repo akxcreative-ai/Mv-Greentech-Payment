@@ -35,89 +35,30 @@ import {
   ConfirmDialog,
 } from '@/components/ui';
 import toast from 'react-hot-toast';
-
-const initialCompanies: Company[] = [
-  {
-    id: 'comp_001',
-    name: 'MV Holdings Private Limited',
-    code: 'MV-CORP',
-    gstNumber: '27AABCM9910E1Z4',
-    panNumber: 'AABCM9910E',
-    address: 'Tower B, 14th Floor, Express Trade Towers',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    pincode: '400051',
-    phone: '+91 22 4589 1000',
-    email: 'corporate@mvholdings.in',
-    primaryColor: '#1b365d',
-    secondaryColor: '#00b4d8',
-    bankDetails: {
-      bankName: 'HDFC Bank Limited',
-      accountNumber: '50200049281729',
-      ifscCode: 'HDFC0000060',
-      branchName: 'Bandra Kurla Complex',
-      accountType: 'CURRENT',
-    },
-    isActive: true,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2026-11-20T00:00:00Z',
-  },
-  {
-    id: 'comp_002',
-    name: 'MV Infrastructure & Logistics Ltd',
-    code: 'MV-INFRA',
-    gstNumber: '06AABCM8821F1Z1',
-    panNumber: 'AABCM8821F',
-    address: 'Building 10B, DLF Cyber City, Phase III',
-    city: 'Gurugram',
-    state: 'Haryana',
-    pincode: '122002',
-    phone: '+91 124 492 8800',
-    email: 'logistics@mvinfrastructure.com',
-    primaryColor: '#0f766e',
-    secondaryColor: '#14b8a6',
-    bankDetails: {
-      bankName: 'State Bank of India',
-      accountNumber: '33491827402',
-      ifscCode: 'SBIN0004262',
-      branchName: 'Cyber City Corporate Branch',
-      accountType: 'CURRENT',
-    },
-    isActive: true,
-    createdAt: '2025-03-15T00:00:00Z',
-    updatedAt: '2026-11-18T00:00:00Z',
-  },
-  {
-    id: 'comp_003',
-    name: 'MV Digital Technologies Ltd',
-    code: 'MV-TECH',
-    gstNumber: '29AABCM7732D1Z8',
-    panNumber: 'AABCM7732D',
-    address: '4th Floor, Tech Boulevard, Indiranagar',
-    city: 'Bengaluru',
-    state: 'Karnataka',
-    pincode: '560038',
-    phone: '+91 80 6712 9000',
-    email: 'accounts@mvdigitaltech.com',
-    primaryColor: '#4338ca',
-    secondaryColor: '#818cf8',
-    bankDetails: {
-      bankName: 'ICICI Bank Limited',
-      accountNumber: '000205029182',
-      ifscCode: 'ICIC0000002',
-      branchName: 'Indiranagar Main',
-      accountType: 'CURRENT',
-    },
-    isActive: true,
-    createdAt: '2025-06-01T00:00:00Z',
-    updatedAt: '2026-11-15T00:00:00Z',
-  },
-];
+import { companyService } from '@/services/companyService';
 
 export const CompanyManagement: React.FC = () => {
-  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  const loadCompanies = async () => {
+    setIsLoading(true);
+    try {
+      const res = await companyService.getAllCompanies();
+      const list = Array.isArray(res) ? res : (res as any)?.data || (res as any)?.items || [];
+      setCompanies(list);
+    } catch (err) {
+      console.warn('Could not load companies from API:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    loadCompanies();
+  }, []);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
 
   // Sorting state
@@ -290,7 +231,7 @@ export const CompanyManagement: React.FC = () => {
   };
 
   // Save new company
-  const handleSaveCreateCompany = (e: React.FormEvent) => {
+  const handleSaveCreateCompany = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm(false)) return;
 
@@ -322,13 +263,31 @@ export const CompanyManagement: React.FC = () => {
       updatedAt: new Date().toISOString(),
     };
 
-    setCompanies((prev) => [newCompany, ...prev]);
-    setIsCreateModalOpen(false);
-    toast.success(`Company ${newCompany.name} created successfully.`);
+    try {
+      await companyService.createCompany({
+        name: formData.name.trim(),
+        code: formData.code.trim().toUpperCase(),
+        address: formData.address.trim() || undefined,
+        city: formData.city.trim() || undefined,
+        state: formData.state.trim() || undefined,
+        pincode: formData.pincode.trim() || undefined,
+        phone: formData.phone.trim() || undefined,
+        email: formData.email.trim().toLowerCase() || undefined,
+        gstNumber: formData.gstNumber.trim().toUpperCase() || undefined,
+        panNumber: formData.panNumber.trim().toUpperCase() || undefined,
+        primaryColor: formData.primaryColor || '#0D5C3A',
+        secondaryColor: formData.secondaryColor || '#10B981',
+      });
+      toast.success(`Company ${formData.name} created successfully.`);
+      setIsCreateModalOpen(false);
+      await loadCompanies();
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to create company on server');
+    }
   };
 
   // Save edited company
-  const handleSaveEditCompany = (e: React.FormEvent) => {
+  const handleSaveEditCompany = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCompany) return;
     if (!validateForm(true)) return;

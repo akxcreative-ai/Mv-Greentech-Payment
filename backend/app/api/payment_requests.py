@@ -141,6 +141,7 @@ class PaymentRequestDetailResponse(PaymentRequestSummaryResponse):
 
 class PaymentRequestListResponse(BaseModel):
     items: List[PaymentRequestSummaryResponse]
+    data: Optional[List[PaymentRequestSummaryResponse]] = None
     total: int
     page: int
     page_size: int
@@ -285,8 +286,10 @@ async def list_payment_requests(
 
     pages = (total + page_size - 1) // page_size if total > 0 else 1
 
+    pr_items = [PaymentRequestSummaryResponse.model_validate(r) for r in records]
     return PaymentRequestListResponse(
-        items=[PaymentRequestSummaryResponse.model_validate(r) for r in records],
+        items=pr_items,
+        data=pr_items,
         total=total,
         page=page,
         page_size=page_size,

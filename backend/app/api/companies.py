@@ -61,6 +61,7 @@ class CompanyResponse(BaseModel):
 
 class CompanyListResponse(BaseModel):
     items: List[CompanyResponse]
+    data: Optional[List[CompanyResponse]] = None
     total: int
     page: int
     page_size: int
@@ -141,8 +142,10 @@ async def list_companies(
 
     pages = (total + page_size - 1) // page_size if total > 0 else 1
 
+    comp_list = [CompanyResponse.model_validate(c) for c in companies]
     return CompanyListResponse(
-        items=[CompanyResponse.model_validate(c) for c in companies],
+        items=comp_list,
+        data=comp_list,
         total=total,
         page=page,
         page_size=page_size,
@@ -204,6 +207,24 @@ async def create_company(
     await db.refresh(company)
 
     return CompanyResponse.model_validate(company)
+
+
+@router.get(
+    "/all",
+    response_model=List[CompanyResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get All Companies (Unpaginated)",
+)
+async def get_all_companies(
+    is_active: Optional[bool] = None,
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(Company)
+    if is_active is not None:
+        query = query.where(Company.is_active == is_active)
+    result = await db.execute(query.order_by(Company.name.asc()))
+    companies = result.scalars().all()
+    return [CompanyResponse.model_validate(c) for c in companies]
 
 
 @router.get(
