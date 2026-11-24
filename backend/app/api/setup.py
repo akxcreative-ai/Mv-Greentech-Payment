@@ -225,3 +225,116 @@ async def seed_demo_data():
         logger.error("Seeding failed: %s", exc)
         return {"status": "error", "message": str(exc)}
 
+
+@router.post("/clean-production", summary="Reset to clean production state (removes all demo requests, vendors and creates clean MV Greentech admin)")
+async def clean_production_reset():
+    try:
+        from sqlalchemy import delete
+        from app.database import AsyncSessionLocal
+        from app.models.payment_request import PaymentRequest
+        from app.models.approval import ApprovalRecord, ClarificationMessage
+        from app.models.payment_record import PaymentRecord
+        from app.models.audit_log import AuditLog
+        from app.models.vendor import Vendor
+        from app.models.user import User
+        from app.models.department import Department
+        from app.models.company import Company
+        from app.models.role import Role, RoleEnum
+        from app.utils.security import hash_password
+
+        async with AsyncSessionLocal() as db:
+            # 1. Delete all transactional demo data
+            await db.execute(delete(ClarificationMessage))
+            await db.execute(delete(ApprovalRecord))
+            await db.execute(delete(PaymentRecord))
+            await db.execute(delete(PaymentRequest))
+            await db.execute(delete(AuditLog))
+            await db.execute(delete(Vendor))
+            await db.execute(delete(User))
+            await db.execute(delete(Department))
+            await db.execute(delete(Company))
+            await db.flush()
+
+            # 2. Ensure Roles
+            roles = {}
+            for r_name in [RoleEnum.SUPER_ADMIN, RoleEnum.DIRECTOR, RoleEnum.ACCOUNTANT, RoleEnum.DEPARTMENT_HEAD]:
+                q_r = select(Role).where(Role.name == r_name.value)
+                res_r = await db.execute(q_r)
+                r_obj = res_r.scalar_one_or_none()
+                if not r_obj:
+                    r_obj = Role(
+                        name=r_name.value,
+                        display_name=r_name.value.replace("_", " ").title(),
+                        description=f"{r_name.value} role",
+                        permissions={"*": True} if r_name == RoleEnum.SUPER_ADMIN else {"payment_requests": ["read", "write"]},
+                        is_system_role=True
+                    )
+                    db.add(r_obj)
+                    await db.flush()
+                roles[r_name.value] = r_obj
+
+            # 3. Create Official MV Greentech Company
+            company = Company(
+                name="MV Greentech",
+                code="MVG-01",
+                address="Gurugram, Haryana, India",
+                phone="+91-124-4567890",
+                email="info@mvgreentech.com",
+                gst_number="06AAAAA0000A1Z5",
+                pan_number="AAAAA0000A",
+                primary_color="#0D5C3A",
+                is_active=True
+            )
+            db.add(company)
+            await db.flush()
+
+            # 4. Create Standard Departments
+            departments = {}
+            for dept_name, code in [
+                ("Accounts & Finance", "FIN-01"),
+                ("Operations", "OPS-01"),
+                ("Procurement", "PROC-01"),
+                ("Management", "MGMT-01"),
+            ]:
+                dept = Department(
+                    company_id=company.id,
+                    name=dept_name,
+                    code=code,
+                    monthly_budget=5000000,
+                    is_active=True
+                )
+                db.add(dept)
+                await db.flush()
+                departments[code] = dept
+
+            # 5. Create Official Master Administrator Account
+            admin_user = User(
+                company_id=company.id,
+                department_id=departments["MGMT-01"].id,
+                role_id=roles[RoleEnum.SUPER_ADMIN.value].id,
+                email="admin@mvgreentech.com",
+                password_hash=hash_password("Admin@MVGreentech2026"),
+                first_name="MV",
+                last_name="Administrator",
+                designation="Master Administrator",
+                phone="+91-9876543210",
+                is_active=True,
+                email_verified=True,
+            )
+            db.add(admin_user)
+            await db.commit()
+
+            return {
+                "status": "success",
+                "message": "System successfully converted to clean production state.",
+                "admin_email": "admin@mvgreentech.com",
+                "admin_password": "Admin@MVGreentech2026",
+                "company": "MV Greentech",
+                "demo_requests_deleted": True,
+                "demo_vendors_deleted": True
+            }
+    except Exception as exc:
+        logger.error("Production clean reset failed: %s", exc)
+        return {"status": "error", "message": str(exc)}
+
+

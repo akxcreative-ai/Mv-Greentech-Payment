@@ -38,59 +38,6 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-// Quick demo login profiles
-const DEMO_ACCOUNTS: Array<{
-  role: Role;
-  label: string;
-  badgeColor: string;
-  email: string;
-  password?: string;
-  name: string;
-  designation: string;
-  limit: number;
-}> = [
-  {
-    role: Role.SUPER_ADMIN,
-    label: 'Super Admin',
-    badgeColor: 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
-    email: 'admin@mvpayments.com',
-    password: 'Admin@12345',
-    name: 'Rajesh Sharma',
-    designation: 'Chief Technology Officer',
-    limit: 100000000,
-  },
-  {
-    role: Role.APPROVER,
-    label: 'Approver (L2/L3)',
-    badgeColor: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-    email: 'approver@mvpayments.com',
-    password: 'Approver@12345',
-    name: 'Vikram Malhotra',
-    designation: 'Finance Controller',
-    limit: 5000000,
-  },
-  {
-    role: Role.ACCOUNTANT,
-    label: 'Accountant',
-    badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
-    email: 'accountant@mvpayments.com',
-    password: 'Accountant@12345',
-    name: 'Priya Desai',
-    designation: 'Senior Treasury Analyst',
-    limit: 1000000,
-  },
-  {
-    role: Role.REQUESTER,
-    label: 'Requester',
-    badgeColor: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
-    email: 'requester@mvpayments.com',
-    password: 'Requester@12345',
-    name: 'Amit Patel',
-    designation: 'Operations Lead',
-    limit: 0,
-  },
-];
-
 const REMEMBER_ME_KEY = 'mv_payment_remembered_email';
 const THROTTLE_STORAGE_KEY = 'mv_payment_login_lockout_until';
 const MAX_ATTEMPTS = 5;
@@ -281,52 +228,6 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  // Quick Demo Login bypass with authentic backend credentials or mock fallback
-  const handleDemoLogin = async (profile: typeof DEMO_ACCOUNTS[0]) => {
-    try {
-      if (profile.password) {
-        await login(profile.email, profile.password);
-        const currentUser = useAuthStore.getState().user;
-        toast.success(`Signed in as ${profile.name} (${profile.label})`);
-        if (currentUser) {
-          redirectByRole(currentUser);
-        } else {
-          redirectByRole({
-            ...profile,
-            id: `usr_demo_${profile.role.toLowerCase()}`,
-            fullName: profile.name,
-            companyId: 'comp_mv_global',
-            departmentId: 'dept_finance',
-            isActive: true,
-            createdAt: '2026-01-15T08:00:00Z',
-            updatedAt: new Date().toISOString(),
-          } as User);
-        }
-        return;
-      }
-    } catch (err) {
-      console.warn('Real login attempt for demo account failed, using mock session fallback:', err);
-    }
-
-    const mockUser: User = {
-      id: `usr_demo_${profile.role.toLowerCase()}`,
-      email: profile.email,
-      fullName: profile.name,
-      role: profile.role,
-      companyId: 'comp_mv_global',
-      departmentId: 'dept_finance',
-      designation: profile.designation,
-      approvalLimit: profile.limit,
-      isActive: true,
-      createdAt: '2026-01-15T08:00:00Z',
-      updatedAt: new Date().toISOString(),
-    };
-
-    login(mockUser, `mv_demo_jwt_token_${profile.role.toLowerCase()}`);
-    toast.success(`Signed in as ${profile.name} (${profile.label})`);
-    redirectByRole(mockUser);
-  };
-
   return (
     <AuthLayout>
       <div className="space-y-6">
@@ -450,40 +351,17 @@ export const LoginPage: React.FC = () => {
           </Button>
         </form>
 
-        {/* Demo Fast Logins Section */}
-        <div className="pt-4 border-t border-slate-100 dark:border-dark-border">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              Quick Demo Access
-            </span>
-            <span className="text-[10px] text-slate-400 dark:text-slate-500">1-click roles</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            {DEMO_ACCOUNTS.map((account) => (
-              <button
-                key={account.role}
-                type="button"
-                onClick={() => handleDemoLogin(account)}
-                className="flex flex-col items-start p-2 rounded-lg border border-slate-200 dark:border-dark-border hover:border-emerald-600 dark:hover:border-emerald-400/80 bg-slate-50/70 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-dark-card transition text-left group"
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
-                    {account.label}
-                  </span>
-                  <span
-                    className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${account.badgeColor}`}
-                  >
-                    {account.role}
-                  </span>
-                </div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate w-full mt-0.5">
-                  {account.name}
-                </span>
-              </button>
-            ))}
-          </div>
+        {/* Corporate Support / Help Info */}
+        <div className="pt-4 border-t border-slate-100 dark:border-dark-border text-center">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Need access or forgot password?{' '}
+            <a
+              href="mailto:it-support@mvgreentech.com"
+              className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+            >
+              Contact IT Support
+            </a>
+          </p>
         </div>
 
         {/* System Setup Link (Initial Provisioning) */}
