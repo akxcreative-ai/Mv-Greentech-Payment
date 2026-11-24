@@ -47,36 +47,46 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
-const createPaymentRequestSchema = z.object({
-  companyId: z.string().min(1, 'Please select an operating company'),
-  departmentId: z.string().min(1, 'Please select a department'),
-  vendorId: z.string().min(1, 'Please select a vendor'),
-  expenseCategory: z.string().min(1, 'Please select an expense category'),
-  expenseSubcategory: z.string().optional(),
-  paymentPurpose: z
-    .string()
-    .min(5, 'Payment purpose must be at least 5 characters long')
-    .max(1000, 'Payment purpose cannot exceed 1000 characters'),
-  invoiceNumber: z.string().min(1, 'Invoice / Bill number is mandatory'),
-  invoiceDate: z.string().min(1, 'Invoice date is mandatory'),
-  dueDate: z.string().min(1, 'Payment due date is mandatory'),
-  amount: z
-    .number({ invalid_type_error: 'Amount must be a valid number' })
-    .positive('Base amount must be greater than 0'),
-  gstAmount: z
-    .number({ invalid_type_error: 'GST amount must be a number' })
-    .min(0, 'GST amount cannot be negative')
-    .default(0),
-  paymentMode: z.nativeEnum(PaymentMode, {
-    errorMap: () => ({ message: 'Please select a valid payment mode' }),
-  }),
-  bankAccount: z.string().min(1, 'Beneficiary bank account details are required'),
-  priority: z.nativeEnum(Priority, {
-    errorMap: () => ({ message: 'Please select request priority' }),
-  }),
-  remarks: z.string().optional(),
-  assignedApproverId: z.string().optional(),
-});
+const createPaymentRequestSchema = z
+  .object({
+    companyId: z.string().min(1, 'Please select an operating company'),
+    departmentId: z.string().min(1, 'Please select a department'),
+    vendorId: z.string().optional(),
+    expenseCategory: z.string().min(1, 'Please select an expense category'),
+    expenseSubcategory: z.string().optional(),
+    paymentPurpose: z
+      .string()
+      .min(5, 'Payment purpose must be at least 5 characters long')
+      .max(1000, 'Payment purpose cannot exceed 1000 characters'),
+    invoiceNumber: z.string().min(1, 'Bill / Claim / Invoice number is mandatory'),
+    invoiceDate: z.string().min(1, 'Bill / Claim date is mandatory'),
+    dueDate: z.string().min(1, 'Payment due date is mandatory'),
+    amount: z
+      .number({ invalid_type_error: 'Amount must be a valid number' })
+      .positive('Base amount must be greater than 0'),
+    gstAmount: z
+      .number({ invalid_type_error: 'GST amount must be a number' })
+      .min(0, 'GST amount cannot be negative')
+      .default(0),
+    paymentMode: z.nativeEnum(PaymentMode, {
+      errorMap: () => ({ message: 'Please select a valid payment mode' }),
+    }),
+    bankAccount: z.string().min(1, 'Beneficiary bank account / UPI ID details are required'),
+    priority: z.nativeEnum(Priority, {
+      errorMap: () => ({ message: 'Please select request priority' }),
+    }),
+    remarks: z.string().optional(),
+    assignedApproverId: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.expenseCategory !== 'EMPLOYEE_REIMBURSEMENT' && !data.vendorId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['vendorId'],
+        message: 'Please select a vendor for vendor payments',
+      });
+    }
+  });
 
 type FormValues = z.infer<typeof createPaymentRequestSchema>;
 
@@ -159,6 +169,8 @@ export const CreatePaymentRequest: React.FC = () => {
   const watchGstAmount = watch('gstAmount') || 0;
   const watchVendorId = watch('vendorId');
   const watchPriority = watch('priority');
+  const watchExpenseCategory = watch('expenseCategory');
+  const isEmployeeReimbursement = watchExpenseCategory === 'EMPLOYEE_REIMBURSEMENT';
 
   // Auto-calculate Total Amount
   const calculatedTotal = useMemo(() => {
@@ -270,10 +282,13 @@ export const CreatePaymentRequest: React.FC = () => {
 
   // Perform Duplicate Check
   const runDuplicateCheck = async (
-    vendorId: string,
+    vendorId: string | undefined,
     invoiceNumber: string,
     amount: number
   ): Promise<DuplicateCheckResult | null> => {
+    if (!vendorId) {
+      return null;
+    }
     try {
       const result = await paymentRequestService.checkDuplicate({
         vendorId,
@@ -612,108 +627,139 @@ export const CreatePaymentRequest: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
-                {/* Searchable Vendor Combobox */}
-                <div className="relative">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                    Vendor / Supplier *
-                  </label>
-
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search vendor by name, code or category..."
-                      value={selectedVendor ? `${selectedVendor.name} (${selectedVendor.vendorCode})` : vendorSearch}
-                      onChange={(e) => {
-                        setVendorSearch(e.target.value);
-                        setValue('vendorId', '');
-                        setIsVendorDropdownOpen(true);
-                      }}
-                      onFocus={() => setIsVendorDropdownOpen(true)}
-                      className="w-full h-10 pl-9 pr-8 text-sm rounded-lg border border-slate-300 dark:border-dark-border bg-white dark:bg-dark-card text-slate-900 dark:text-slate-100 outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-600/20"
-                    />
-                    <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400 pointer-events-none" />
-                    {selectedVendor && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setValue('vendorId', '', { shouldValidate: true });
-                          setVendorSearch('');
-                        }}
-                        className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-rose-500 font-bold"
-                      >
-                        &times;
-                      </button>
-                    )}
+                {isEmployeeReimbursement ? (
+                  <div className="p-4 rounded-xl border-2 border-emerald-300 bg-emerald-50 text-emerald-950 space-y-2.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
+                        👤
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-emerald-900">
+                          Employee Self Claim / Reimbursement
+                        </p>
+                        <p className="text-xs text-emerald-700 font-medium">
+                          Claimant: <strong>{user?.fullName || user?.name || 'Logged-in Employee'}</strong> ({user?.email})
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-xs text-emerald-800 bg-white/80 p-3 rounded-lg border border-emerald-200 leading-relaxed">
+                      💡 <strong>Disbursement Workflow:</strong> After Director reviews & approves this expense claim, Finance Accountant will transfer funds directly to your Bank Account / UPI ID specified below.
+                    </div>
                   </div>
+                ) : (
+                  <>
+                    {/* Searchable Vendor Combobox */}
+                    <div className="relative">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                        Vendor / Supplier *
+                      </label>
 
-                  {/* Dropdown Options */}
-                  {isVendorDropdownOpen && (
-                    <div className="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card shadow-xl divide-y divide-slate-100 dark:divide-dark-border">
-                      {filteredVendors.length === 0 ? (
-                        <div className="p-3 text-xs text-center text-slate-500">
-                          No matching registered vendors found.
-                        </div>
-                      ) : (
-                        filteredVendors.map((v) => (
-                          <div
-                            key={v.id}
-                            onClick={() => handleSelectVendor(v.id)}
-                            className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition flex items-center justify-between text-xs"
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Search vendor by name, code or category..."
+                          value={selectedVendor ? `${selectedVendor.name} (${selectedVendor.vendorCode})` : vendorSearch}
+                          onChange={(e) => {
+                            setVendorSearch(e.target.value);
+                            setValue('vendorId', '');
+                            setIsVendorDropdownOpen(true);
+                          }}
+                          onFocus={() => setIsVendorDropdownOpen(true)}
+                          className="w-full h-10 pl-9 pr-8 text-sm rounded-lg border border-slate-300 dark:border-dark-border bg-white dark:bg-dark-card text-slate-900 dark:text-slate-100 outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-600/20"
+                        />
+                        <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400 pointer-events-none" />
+                        {selectedVendor && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setValue('vendorId', '', { shouldValidate: true });
+                              setVendorSearch('');
+                            }}
+                            className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-rose-500 font-bold"
                           >
-                            <div>
-                              <p className="font-semibold text-slate-900 dark:text-white">
-                                {v.name}
-                              </p>
-                              <p className="text-slate-500 font-mono mt-0.5">
-                                Code: {v.vendorCode} {v.gstNumber ? `| GST: ${v.gstNumber}` : ''}
-                              </p>
+                            &times;
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Dropdown Options */}
+                      {isVendorDropdownOpen && (
+                        <div className="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card shadow-xl divide-y divide-slate-100 dark:divide-dark-border">
+                          {filteredVendors.length === 0 ? (
+                            <div className="p-3 text-xs text-center text-slate-500">
+                              No matching registered vendors found.
                             </div>
-                            <span className="text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded">
-                              {v.category || 'General'}
-                            </span>
-                          </div>
-                        ))
+                          ) : (
+                            filteredVendors.map((v) => (
+                              <div
+                                key={v.id}
+                                onClick={() => handleSelectVendor(v.id)}
+                                className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition flex items-center justify-between text-xs"
+                              >
+                                <div>
+                                  <p className="font-semibold text-slate-900 dark:text-white">
+                                    {v.name}
+                                  </p>
+                                  <p className="text-slate-500 font-mono mt-0.5">
+                                    Code: {v.vendorCode} {v.gstNumber ? `| GST: ${v.gstNumber}` : ''}
+                                  </p>
+                                </div>
+                                <span className="text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded">
+                                  {v.category || 'General'}
+                                </span>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+
+                      {errors.vendorId && (
+                        <p className="text-xs text-rose-600 mt-1">{errors.vendorId.message}</p>
                       )}
                     </div>
-                  )}
 
-                  {errors.vendorId && (
-                    <p className="text-xs text-rose-600 mt-1">{errors.vendorId.message}</p>
-                  )}
-                </div>
-
-                {/* Selected Vendor Brief Card */}
-                {selectedVendor && (
-                  <div className="p-3.5 rounded-xl border border-navy-100 dark:border-navy-900 bg-navy-50/60 dark:bg-navy-950/40 text-xs space-y-1.5">
-                    <div className="flex items-center justify-between font-semibold text-navy-900 dark:text-cyan-300">
-                      <span>{selectedVendor.name}</span>
-                      <span className="font-mono text-[11px]">{selectedVendor.vendorCode}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-slate-600 dark:text-slate-400 text-[11px]">
-                      <div>
-                        Bank: <strong className="text-slate-800 dark:text-slate-200">{selectedVendor.bankName || '-'}</strong>
+                    {/* Selected Vendor Brief Card */}
+                    {selectedVendor && (
+                      <div className="p-3.5 rounded-xl border border-navy-100 dark:border-navy-900 bg-navy-50/60 dark:bg-navy-950/40 text-xs space-y-1.5">
+                        <div className="flex items-center justify-between font-semibold text-navy-900 dark:text-cyan-300">
+                          <span>{selectedVendor.name}</span>
+                          <span className="font-mono text-[11px]">{selectedVendor.vendorCode}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-slate-600 dark:text-slate-400 text-[11px]">
+                          <div>
+                            Bank: <strong className="text-slate-800 dark:text-slate-200">{selectedVendor.bankName || '-'}</strong>
+                          </div>
+                          <div>
+                            A/C: <strong className="text-slate-800 dark:text-slate-200">{selectedVendor.accountNumber || '-'}</strong>
+                          </div>
+                          <div>
+                            IFSC: <strong className="text-slate-800 dark:text-slate-200 font-mono">{selectedVendor.ifscCode || '-'}</strong>
+                          </div>
+                          <div>
+                            PAN: <strong className="text-slate-800 dark:text-slate-200 font-mono">{selectedVendor.panNumber || '-'}</strong>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        A/C: <strong className="text-slate-800 dark:text-slate-200">{selectedVendor.accountNumber || '-'}</strong>
-                      </div>
-                      <div>
-                        IFSC: <strong className="text-slate-800 dark:text-slate-200 font-mono">{selectedVendor.ifscCode || '-'}</strong>
-                      </div>
-                      <div>
-                        PAN: <strong className="text-slate-800 dark:text-slate-200 font-mono">{selectedVendor.panNumber || '-'}</strong>
-                      </div>
-                    </div>
-                  </div>
+                    )}
+                  </>
                 )}
 
                 {/* Bank Account Details Input */}
                 <div>
                   <Input
-                    label="Payout Bank Details *"
-                    placeholder="e.g. HDFC Bank | A/C 50200012345678 | IFSC HDFC0000128"
+                    label={isEmployeeReimbursement ? "Employee Bank Account or UPI ID *" : "Payout Bank Details *"}
+                    placeholder={
+                      isEmployeeReimbursement
+                        ? "e.g. UPI ID (salesperson@upi) OR HDFC A/C: 501000123456, IFSC: HDFC0001234"
+                        : "e.g. HDFC Bank | A/C 50200012345678 | IFSC HDFC0000128"
+                    }
                     {...register('bankAccount')}
                     error={errors.bankAccount?.message}
-                    helperText="Designated beneficiary disbursement account, verified against vendor records."
+                    helperText={
+                      isEmployeeReimbursement
+                        ? "Your personal account / UPI ID where Accountant will transfer the approved reimbursement."
+                        : "Designated beneficiary disbursement account, verified against vendor records."
+                    }
                   />
                 </div>
               </CardContent>
@@ -805,8 +851,8 @@ export const CreatePaymentRequest: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <Input
-                      label="Invoice Number *"
-                      placeholder="e.g. INV-2026-9021"
+                      label={isEmployeeReimbursement ? "Claim Ref / Bill Number *" : "Invoice Number *"}
+                      placeholder={isEmployeeReimbursement ? "e.g. EXP-2026-001 or Taxi-Bill-102" : "e.g. INV-2026-9021"}
                       {...register('invoiceNumber')}
                       error={errors.invoiceNumber?.message}
                     />
@@ -815,7 +861,7 @@ export const CreatePaymentRequest: React.FC = () => {
                   <div>
                     <Input
                       type="date"
-                      label="Invoice Date *"
+                      label={isEmployeeReimbursement ? "Expense / Bill Date *" : "Invoice Date *"}
                       {...register('invoiceDate')}
                       error={errors.invoiceDate?.message}
                     />
