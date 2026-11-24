@@ -307,3 +307,31 @@ git checkout <previous-stable-tag-or-commit>
 # Rebuild and restart containers
 docker compose up -d --build
 ```
+
+---
+
+## Render (render.yaml) — Required Settings
+
+The Render blueprint provisions a managed PostgreSQL database (SQLite on Render's
+ephemeral filesystem would lose all data on every redeploy). Before the first deploy,
+set these in the Render dashboard (they are `sync: false` and never committed):
+
+| Variable | Value |
+|---|---|
+| `CORS_ORIGINS` | Exact frontend URL(s), comma-separated, e.g. `https://your-app.vercel.app` |
+| `FIRST_SUPERADMIN_EMAIL` | Email of the first Super Admin |
+| `FIRST_SUPERADMIN_PASSWORD` | Strong password (12+ chars). Change it after first login |
+
+`SECRET_KEY`, `JWT_SECRET_KEY` and `SETUP_TOKEN` are auto-generated. In production the
+backend refuses to start with default/weak secrets, and `/docs` + `/openapi.json` are disabled.
+
+The first Super Admin is created on startup **only** when the users table is empty. As an
+alternative, open `/setup` in the frontend and enter the `SETUP_TOKEN` value from the Render
+dashboard. All other users (approver, accountant, requester) are created by the admin from
+User Management.
+
+Optional: `CORS_ORIGIN_REGEX` for Vercel preview URLs — restrict it to your own project
+(e.g. `https://mv-greentech-payment(-[a-z0-9-]+)?\.vercel\.app`), never all of `*.vercel.app`.
+
+Uploaded documents need a persistent disk (paid Render plan): uncomment the `disk` block in
+`render.yaml` and set `UPLOAD_DIR=/var/data/uploads`.

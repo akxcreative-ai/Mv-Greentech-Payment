@@ -9,10 +9,10 @@ from functools import lru_cache
 import json
 import os
 from pathlib import Path
-from typing import Any, List, Union
+from typing import Annotated, Any, List, Union
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     )
 
     # CORS Configuration
-    CORS_ORIGINS: List[str] = Field(
+    CORS_ORIGINS: Annotated[List[str], NoDecode] = Field(
         default_factory=lambda: [
             "http://localhost:3000",
             "http://localhost:5173",
@@ -65,16 +65,33 @@ class Settings(BaseSettings):
         description="Allowed CORS origin URLs",
     )
 
+    CORS_ORIGIN_REGEX: str = Field(
+        default="",
+        description=(
+            "Optional regex for extra allowed origins (e.g. Vercel preview URLs of YOUR project only: "
+            "'https://mv-greentech-payment(-[a-z0-9-]+)?\\.vercel\\.app'). Empty = disabled."
+        ),
+    )
+
+    # Initial Bootstrap (first Super Admin, created on startup only when the users table is empty)
+    FIRST_SUPERADMIN_EMAIL: str = Field(default="", description="Email for the first super admin")
+    FIRST_SUPERADMIN_PASSWORD: str = Field(default="", description="Initial password for the first super admin")
+    FIRST_SUPERADMIN_NAME: str = Field(default="System Administrator", description="Display name of first super admin")
+    SETUP_TOKEN: str = Field(
+        default="",
+        description="Secret required by POST /api/setup/init. In production, /init is disabled when this is empty.",
+    )
+
     # File Storage Configuration
     UPLOAD_DIR: str = Field(
-        default="d:/mv-payment-approval/uploads",
+        default="./uploads",
         description="Absolute or relative path to store uploaded files securely",
     )
     MAX_UPLOAD_SIZE: int = Field(
         default=10 * 1024 * 1024,  # 10 MB in bytes
         description="Maximum file upload size in bytes (default: 10MB)",
     )
-    ALLOWED_EXTENSIONS: List[str] = Field(
+    ALLOWED_EXTENSIONS: Annotated[List[str], NoDecode] = Field(
         default_factory=lambda: ["pdf", "jpg", "jpeg", "png", "xlsx"],
         description="List of permitted file extensions for uploads",
     )
@@ -154,6 +171,22 @@ class Settings(BaseSettings):
         elif isinstance(v, (list, tuple)):
             return [str(ext).strip().lstrip(".").lower() for ext in v if str(ext).strip()]
         return v
+
+    def validate_production_secrets(self) -> None:
+        """Refuse to start in production with default or weak secrets."""
+        if not self.is_production:
+            return
+        problems = []
+        for name in ("SECRET_KEY", "JWT_SECRET_KEY"):
+            value = getattr(self, name)
+            if "change-in-production" in value or len(value) < 32:
+                problems.append(name)
+        if problems:
+            raise RuntimeError(
+                "Insecure configuration: set strong (32+ chars) values for "
+                + ", ".join(problems)
+                + " in production."
+            )
 
     @property
     def is_production(self) -> bool:

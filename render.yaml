@@ -1,3 +1,13 @@
+databases:
+  # Managed PostgreSQL. SQLite on Render's ephemeral filesystem loses ALL data on every
+  # redeploy/restart, so it must not be used for financial records.
+  # NOTE: Render's free Postgres plan has an expiry window; use a paid plan for real production.
+  - name: mv-payment-db
+    region: singapore
+    plan: free
+    databaseName: mv_payment
+    user: mv_payment
+
 services:
   - type: web
     name: mv-payment-backend
@@ -17,4 +27,25 @@ services:
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        value: sqlite+aiosqlite:///mv_payment.db
+        fromDatabase:
+          name: mv-payment-db
+          property: connectionString
+      # Exact frontend origin(s), comma-separated, e.g. https://your-app.vercel.app
+      - key: CORS_ORIGINS
+        sync: false
+      # First Super Admin is created on startup only when the DB has no users.
+      # Set these in the Render dashboard (never commit them). Password: 12+ chars.
+      - key: FIRST_SUPERADMIN_EMAIL
+        sync: false
+      - key: FIRST_SUPERADMIN_PASSWORD
+        sync: false
+      # Alternative to the two vars above: required by the /setup page (POST /api/setup/init).
+      - key: SETUP_TOKEN
+        generateValue: true
+    # Uploaded invoices/bills need persistent storage. Render disks require a paid plan.
+    # After upgrading: uncomment the disk below AND add env var UPLOAD_DIR=/var/data/uploads.
+    # Until then uploads go to ./uploads and are lost on redeploy.
+    # disk:
+    #   name: mv-uploads
+    #   mountPath: /var/data
+    #   sizeGB: 1
