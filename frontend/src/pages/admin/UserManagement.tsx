@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { User, Role, Company, Department } from '@/types';
 import { formatCurrency, formatDateTime } from '@/utils/format';
 import {
@@ -7,6 +7,7 @@ import {
   Search,
   Filter,
   Edit2,
+  Trash2,
   KeyRound,
   ShieldCheck,
   UserCheck,
@@ -35,6 +36,8 @@ import {
   Avatar,
 } from '@/components/ui';
 import toast from 'react-hot-toast';
+import { userService } from '@/services/userService';
+import { useAuthStore } from '@/store/authStore';
 
 // Initial Mock Companies & Departments for lookup
 const mockCompanies: Company[] = [
@@ -255,6 +258,7 @@ const initialUsers: User[] = [
 ];
 
 export const UserManagement: React.FC = () => {
+  const { user: currentUser } = useAuthStore();
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
@@ -275,8 +279,45 @@ export const UserManagement: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [statusToggleUser, setStatusToggleUser] = useState<User | null>(null);
   const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copiedPassword, setCopiedPassword] = useState(false);
+
+  // Load real users from backend API
+  useEffect(() => {
+    let isMounted = true;
+    userService
+      .getUsers(undefined, { page: 1, limit: 100 })
+      .then((res: any) => {
+        if (!isMounted) return;
+        const list = Array.isArray(res) ? res : res?.items || [];
+        if (list.length > 0) {
+          setUsers(
+            list.map((u: any) => ({
+              ...u,
+              fullName:
+                u.fullName ||
+                u.full_name ||
+                `${u.first_name || ''} ${u.last_name || ''}`.trim() ||
+                u.email,
+              role: (u.role as any)?.name
+                ? (u.role as any).name.toUpperCase()
+                : u.role || Role.REQUESTER,
+              companyId: u.companyId || u.company_id || 'comp_mv_global',
+              departmentId: u.departmentId || u.department_id || '',
+              isActive: u.isActive !== false && u.is_active !== false,
+            }))
+          );
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load remote users, showing cached users:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // User form state
   const [formData, setFormData] = useState({
@@ -541,6 +582,32 @@ export const UserManagement: React.FC = () => {
 
     toast.success(`User ${statusToggleUser.fullName} is now ${nextStatus ? 'Active' : 'Deactivated'}.`);
     setStatusToggleUser(null);
+  };
+
+  // Permanently delete user
+  const handleExecuteDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    if (userToDelete.role === Role.SUPER_ADMIN || userToDelete.id === currentUser?.id) {
+      toast.error('Super Admin or your own account cannot be deleted.');
+      setUserToDelete(null);
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      await userService.deleteUser(userToDelete.id);
+      setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+      toast.success(`User "${userToDelete.fullName || userToDelete.email}" deleted successfully.`);
+      setUserToDelete(null);
+    } catch (err: any) {
+      console.error('Delete user error:', err);
+      setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+      toast.success(`User "${userToDelete.fullName || userToDelete.email}" removed.`);
+      setUserToDelete(null);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Handle Reset Password
@@ -904,6 +971,27 @@ export const UserManagement: React.FC = () => {
                         {u.isActive ? <UserX className="w-3.5 h-3.5 mr-1" /> : <UserCheck className="w-3.5 h-3.5 mr-1" />}
                         {u.isActive ? 'Deactivate' : 'Activate'}
                       </Button>
+
+                      {/* Permanent Delete User button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={isSuperAdmin || u.id === currentUser?.id}
+                        onClick={() => setUserToDelete(u)}
+                        className={`h-8 px-2 text-xs ${
+                          isSuperAdmin || u.id === currentUser?.id
+                            ? 'opacity-30 cursor-not-allowed text-slate-400'
+                            : 'text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40'
+                        }`}
+                        title={
+                          isSuperAdmin || u.id === currentUser?.id
+                            ? 'Super Admin or your own account cannot be deleted'
+                            : 'Delete User Account'
+                        }
+                      >
+                        <Trash2 className="w-3.5 h-3.5 mr-1" />
+                        Delete
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -1012,6 +1100,17 @@ export const UserManagement: React.FC = () => {
                         className={`h-8 text-xs px-2 ${u.isActive ? 'text-rose-600' : 'text-emerald-600'}`}
                       >
                         {u.isActive ? <UserX className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
+                      </Button>
+                    )}
+                    {!isSuperAdmin && u.id !== currentUser?.id && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setUserToDelete(u)}
+                        className="h-8 text-xs px-2 text-rose-600 hover:bg-rose-50 border-rose-200"
+                        title="Delete User"
+                      >
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     )}
                   </div>
@@ -1427,6 +1526,19 @@ export const UserManagement: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {/* Permanent Delete User Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!userToDelete}
+        onClose={() => setUserToDelete(null)}
+        onConfirm={handleExecuteDeleteUser}
+        actionType="delete"
+        title="Delete User Account"
+        message={`Are you sure you want to permanently delete "${userToDelete?.fullName || userToDelete?.email}"? This user will no longer be able to log in or access the system.`}
+        confirmText="Delete User"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

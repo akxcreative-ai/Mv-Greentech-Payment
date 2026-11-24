@@ -421,8 +421,8 @@ async def update_user(
 @router.delete(
     "/{id}",
     status_code=status.HTTP_200_OK,
-    summary="Deactivate User",
-    description="Soft-deletes and deactivates the specified user account.",
+    summary="Delete User Account",
+    description="Deletes the specified user account from the system.",
 )
 async def delete_user(
     id: uuid.UUID,
@@ -436,7 +436,7 @@ async def delete_user(
             detail="Administrators cannot delete their own active account.",
         )
 
-    query = select(User).where(User.id == id, User.is_deleted == False)
+    query = select(User).where(User.id == id)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
 
@@ -446,20 +446,27 @@ async def delete_user(
             detail=f"User with ID '{id}' was not found.",
         )
 
-    user.is_active = False
-    user.soft_delete()
+    deleted_email = user.email
+
+    # Try hard delete first if user has no dependencies, otherwise clean soft-delete
+    try:
+        await db.delete(user)
+    except Exception:
+        user.is_active = False
+        user.is_deleted = True
+        user.email = f"{deleted_email}.deleted.{int(datetime.now().timestamp())}"
 
     audit = AuditLog(
         user_id=current_admin.id,
         event_type=AuditEventType.USER_DELETED,
         entity_type="user",
-        entity_id=user.id,
-        previous_value={"email": user.email, "is_active": True},
-        new_value={"is_active": False, "is_deleted": True},
+        entity_id=id,
+        previous_value={"email": deleted_email, "is_active": True},
+        new_value={"is_deleted": True},
         ip_address=get_client_ip(request),
         user_agent=request.headers.get("User-Agent", "")[:500],
     )
     db.add(audit)
     await db.commit()
 
-    return {"success": True, "message": f"User '{user.email}' has been deactivated."}
+    return {"success": True, "message": f"User '{deleted_email}' has been successfully deleted."}
