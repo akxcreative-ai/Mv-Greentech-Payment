@@ -230,7 +230,7 @@ async def seed_demo_data():
 async def clean_production_reset():
     try:
         from sqlalchemy import delete
-        from app.database import AsyncSessionLocal
+        from app.database import AsyncSessionLocal, init_db
         from app.models.payment_request import PaymentRequest
         from app.models.approval import ApprovalRecord, ClarificationMessage
         from app.models.payment_record import PaymentRecord
@@ -242,17 +242,16 @@ async def clean_production_reset():
         from app.models.role import Role, RoleEnum
         from app.utils.security import hash_password
 
+        # Ensure all tables exist first
+        await init_db()
+
         async with AsyncSessionLocal() as db:
-            # 1. Delete all transactional demo data
-            await db.execute(delete(ClarificationMessage))
-            await db.execute(delete(ApprovalRecord))
-            await db.execute(delete(PaymentRecord))
-            await db.execute(delete(PaymentRequest))
-            await db.execute(delete(AuditLog))
-            await db.execute(delete(Vendor))
-            await db.execute(delete(User))
-            await db.execute(delete(Department))
-            await db.execute(delete(Company))
+            # 1. Safely delete existing records
+            for model in [ClarificationMessage, ApprovalRecord, PaymentRecord, PaymentRequest, AuditLog, Vendor, User, Department, Company]:
+                try:
+                    await db.execute(delete(model))
+                except Exception as del_err:
+                    logger.warning("Table cleanup skipped for %s: %s", model, del_err)
             await db.flush()
 
             # 2. Ensure Roles
