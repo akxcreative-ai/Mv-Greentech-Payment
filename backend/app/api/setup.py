@@ -300,7 +300,6 @@ async def clean_production_reset():
                     company_id=company.id,
                     name=dept_name,
                     code=code,
-                    monthly_budget=5000000,
                     is_active=True
                 )
                 db.add(dept)
@@ -316,7 +315,6 @@ async def clean_production_reset():
                 password_hash=hash_password("Admin@MVGreentech2026"),
                 first_name="MV",
                 last_name="Administrator",
-                designation="Master Administrator",
                 phone="+91-9876543210",
                 is_active=True,
                 email_verified=True,
