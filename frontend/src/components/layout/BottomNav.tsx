@@ -66,8 +66,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ className }) => {
               className={cn(
                 'flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-150 select-none flex-1',
                 isActive
-                  ? 'text-navy-800 dark:text-cyan-400 font-bold scale-105'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'text-emerald-700 dark:text-emerald-400 font-bold scale-105'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-300'
               )}
             >
               <div className="relative">

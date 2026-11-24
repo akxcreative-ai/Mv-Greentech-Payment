@@ -59,9 +59,9 @@ import { Priority, RequestStatus, PaymentRequest } from '@/types';
 
 // Professional chart colors
 const PIE_COLORS = [
-  '#1b365d', // Navy primary
-  '#0284c7', // Sky
+  '#0d5c3a', // MV Greentech Forest Green
   '#10b981', // Emerald
+  '#0284c7', // Sky
   '#f59e0b', // Amber
   '#8b5cf6', // Violet
   '#f43f5e', // Rose

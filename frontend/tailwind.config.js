@@ -8,34 +8,46 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary Brand Navy (#1e3a5f)
-        navy: {
-          50: '#f0f4f8',
-          100: '#d9e2ec',
-          200: '#bcccdc',
-          300: '#9fb3c8',
-          400: '#829ab1',
-          500: '#627d98',
-          600: '#486581',
-          700: '#334e68',
-          800: '#1e3a5f', // Primary Navy #1e3a5f
-          900: '#0b1d3a', // Deep Navy
-          950: '#061024',
-          DEFAULT: '#1e3a5f',
+        // MV Greentech Brand Green (#0D5C3A & Emeralds)
+        greentech: {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#0d5c3a', // Official Logo Forest Green
+          900: '#052e16',
+          DEFAULT: '#0d5c3a',
         },
         primary: {
-          50: '#f0f4f8',
-          100: '#d9e2ec',
-          200: '#bcccdc',
-          300: '#9fb3c8',
-          400: '#829ab1',
-          500: '#627d98',
-          600: '#486581',
-          700: '#334e68',
-          800: '#1e3a5f',
-          900: '#0b1d3a',
-          950: '#061024',
-          DEFAULT: '#1e3a5f',
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#0d5c3a',
+          900: '#052e16',
+          DEFAULT: '#0d5c3a',
+        },
+        navy: {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#0d5c3a',
+          900: '#052e16',
+          950: '#031a0d',
+          DEFAULT: '#0d5c3a',
         },
         // Success Green
         success: {
@@ -79,14 +91,6 @@ export default {
           900: '#78350f',
           DEFAULT: '#f59e0b',
         },
-        // Dark theme specific surface colors
-        dark: {
-          bg: '#080e1e',
-          card: '#0f1a35',
-          border: '#1e2c52',
-          hover: '#192547',
-          muted: '#8796b0',
-        },
       },
       fontFamily: {
         sans: [
@@ -95,47 +99,13 @@ export default {
           'BlinkMacSystemFont',
           '"Segoe UI"',
           'Roboto',
-          'Oxygen',
-          'Ubuntu',
-          'Cantarell',
-          '"Open Sans"',
-          '"Helvetica Neue"',
           'sans-serif',
-        ],
-        mono: [
-          'JetBrains Mono',
-          'ui-monospace',
-          'SFMono-Regular',
-          'Menlo',
-          'Monaco',
-          'Consolas',
-          'monospace',
         ],
       },
       boxShadow: {
-        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
-        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06)',
-        'navy-glow': '0 0 15px rgba(30, 58, 95, 0.35)',
-      },
-      animation: {
-        'fade-in': 'fadeIn 0.2s ease-in-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'slide-down': 'slideDown 0.3s ease-out',
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
-        slideDown: {
-          '0%': { transform: 'translateY(-10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
+        card: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
+        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04)',
+        'green-glow': '0 0 15px rgba(13, 92, 58, 0.25)',
       },
     },
   },

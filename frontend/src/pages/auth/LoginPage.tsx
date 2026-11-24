@@ -444,7 +444,7 @@ export const LoginPage: React.FC = () => {
             loadingText="Verifying credentials..."
             disabled={isSubmitting || lockoutRemaining > 0}
             rightIcon={lockoutRemaining === 0 ? <ArrowRight className="w-4 h-4" /> : undefined}
-            className="mt-2 bg-navy-800 hover:bg-navy-900 active:bg-navy-950 dark:bg-navy-700 dark:hover:bg-navy-600"
+            className="mt-2 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white shadow-md shadow-emerald-700/20"
           >
             {lockoutRemaining > 0 ? `Locked for ${lockoutRemaining}s` : 'Sign In to Account'}
           </Button>
@@ -454,7 +454,7 @@ export const LoginPage: React.FC = () => {
         <div className="pt-4 border-t border-slate-100 dark:border-dark-border">
           <div className="flex items-center justify-between mb-2.5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-navy-600 dark:text-cyan-400" />
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               Quick Demo Access
             </span>
             <span className="text-[10px] text-slate-400 dark:text-slate-500">1-click roles</span>
@@ -466,10 +466,10 @@ export const LoginPage: React.FC = () => {
                 key={account.role}
                 type="button"
                 onClick={() => handleDemoLogin(account)}
-                className="flex flex-col items-start p-2 rounded-lg border border-slate-200 dark:border-dark-border hover:border-navy-600 dark:hover:border-cyan-400/80 bg-slate-50/70 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-dark-card transition text-left group"
+                className="flex flex-col items-start p-2 rounded-lg border border-slate-200 dark:border-dark-border hover:border-emerald-600 dark:hover:border-emerald-400/80 bg-slate-50/70 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-dark-card transition text-left group"
               >
                 <div className="flex items-center justify-between w-full">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-navy-700 dark:group-hover:text-cyan-400">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
                     {account.label}
                   </span>
                   <span

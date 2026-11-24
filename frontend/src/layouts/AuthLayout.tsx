@@ -15,11 +15,11 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   subtitle,
 }) => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-dark-bg flex flex-col justify-between selection:bg-navy-800 selection:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-dark-bg flex flex-col justify-between selection:bg-emerald-700 selection:text-white">
       {/* Background Decor Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-40 dark:opacity-20">
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-navy-200/50 dark:bg-navy-800/40 blur-3xl" />
-        <div className="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-cyan-100/50 dark:bg-cyan-900/30 blur-3xl" />
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-emerald-100/50 dark:bg-emerald-950/40 blur-3xl" />
+        <div className="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-emerald-50/50 dark:bg-emerald-900/20 blur-3xl" />
       </div>
 
       {/* Top Simple Brand Bar */}
@@ -58,7 +58,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* Trust Highlights Under Card */}
           <div className="flex items-center justify-center gap-6 text-[11px] text-slate-500 dark:text-slate-400">
             <span className="flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-navy-600 dark:text-cyan-400" />
+              <Lock className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
               <span>TLS 1.3 Transport Security</span>
             </span>
             <span className="flex items-center gap-1">
