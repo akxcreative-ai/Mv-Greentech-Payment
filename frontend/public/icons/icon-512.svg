@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Navy Gradient -->
+    <linearGradient id="bgGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f" />
+      <stop offset="50%" stop-color="#152a45" />
+      <stop offset="100%" stop-color="#0b1726" />
+    </linearGradient>
+
+    <!-- Metallic/White Monogram Gradient -->
+    <linearGradient id="monogramGrad512" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </linearGradient>
+
+    <!-- Accent Cyan/Blue Gradient for Financial Flow -->
+    <linearGradient id="accentGrad512" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#60a5fa" />
+    </linearGradient>
+
+    <!-- Subtle Drop Shadow Filter -->
+    <filter id="dropShadow512" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Base Circle -->
+  <circle cx="256" cy="256" r="235" fill="url(#bgGrad512)" />
+
+  <!-- Subtle Outer Rim & Inner Ring -->
+  <circle cx="256" cy="256" r="232" fill="none" stroke="#3b82f6" stroke-width="4" stroke-opacity="0.35" />
+  <circle cx="256" cy="256" r="214" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-opacity="0.08" />
+
+  <!-- Monogram Group with Shadow -->
+  <g filter="url(#dropShadow512)">
+    <!-- Letter M -->
+    <!-- Left Pillar of M -->
+    <path d="M 101 160 L 136 160 L 136 352 L 101 352 Z" fill="url(#monogramGrad512)" />
+    <!-- Left Diagonal of M -->
+    <path d="M 136 160 L 184 288 L 205 288 L 157 160 Z" fill="url(#monogramGrad512)" />
+    <!-- Right Diagonal of M -->
+    <path d="M 232 160 L 184 288 L 205 288 L 253 160 Z" fill="url(#monogramGrad512)" />
+    <!-- Right Pillar of M -->
+    <path d="M 227 160 L 262 160 L 262 352 L 227 352 Z" fill="url(#monogramGrad512)" />
+
+    <!-- Letter V (Interlocking / Modern Alignment) -->
+    <!-- Left Stem of V -->
+    <path d="M 277 160 L 312 160 L 349 310 L 328 352 Z" fill="url(#monogramGrad512)" />
+    <!-- Right Dynamic Stem of V (Cyan Financial Flow / Check Accent) -->
+    <path d="M 411 160 L 376 160 L 331 310 L 352 352 Z" fill="url(#accentGrad512)" />
+  </g>
+
+  <!-- Financial Verification Dot / Security Seal -->
+  <circle cx="392" cy="165" r="9.5" fill="#38bdf8" />
+  <circle cx="256" cy="410" r="6" fill="#38bdf8" fill-opacity="0.6" />
+</svg>
