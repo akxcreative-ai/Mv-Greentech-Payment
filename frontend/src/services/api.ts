@@ -1,9 +1,14 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/authStore';
 
-// Get base URL from environment or default to /api
+// Get base URL from environment or default to live Render backend in production
 const envBaseUrl = (import.meta as unknown as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL;
-const baseURL = envBaseUrl || '/api';
+const baseURL =
+  envBaseUrl ||
+  (import.meta.env.PROD
+    ? 'https://mv-greentech-payment.onrender.com/api'
+    : '/api');
+
 
 export const api = axios.create({
   baseURL,
