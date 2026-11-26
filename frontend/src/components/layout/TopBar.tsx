@@ -127,7 +127,7 @@ export const TopBar: React.FC<TopBarProps> = ({
         </div>
 
         <div className="min-w-0">
-          <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate tracking-tight">
+          <h1 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-100 truncate tracking-tight">
             {pageTitle}
           </h1>
           <div className="hidden md:flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">

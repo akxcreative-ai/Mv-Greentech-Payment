@@ -27,7 +27,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white shadow-sm focus-visible:ring-emerald-600 dark:bg-emerald-700 dark:hover:bg-emerald-600',
+    'bg-[#0D5C3A] hover:bg-[#0A482E] active:bg-[#073622] text-white shadow-xs focus-visible:ring-emerald-600 transition-all font-medium',
   secondary:
     'bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 shadow-sm focus-visible:ring-slate-400 dark:bg-slate-800 dark:hover:bg-slate-700 dark:active:bg-slate-600 dark:text-slate-100',
   success:

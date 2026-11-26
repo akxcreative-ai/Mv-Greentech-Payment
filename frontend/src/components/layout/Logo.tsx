@@ -24,15 +24,15 @@ export const Logo: React.FC<LogoProps> = ({
   };
 
   const textSizes = {
-    sm: 'text-sm font-black',
-    md: 'text-base font-black',
-    lg: 'text-lg font-black',
+    sm: 'text-sm font-bold',
+    md: 'text-base font-bold',
+    lg: 'text-lg font-bold',
   };
 
   const subtitleSizes = {
-    sm: 'text-[10px] font-extrabold',
-    md: 'text-[11px] font-extrabold',
-    lg: 'text-xs font-extrabold',
+    sm: 'text-[10px] font-semibold',
+    md: 'text-[11px] font-semibold',
+    lg: 'text-xs font-semibold',
   };
 
   const content = (

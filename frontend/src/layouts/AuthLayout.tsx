@@ -26,7 +26,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
       <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
         <Logo size="md" />
 
-        <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-800 bg-white border border-slate-300 px-3.5 py-1.5 rounded-full shadow-xs">
+        <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-600 bg-white border border-slate-200 px-3.5 py-1.5 rounded-full shadow-xs">
           <ShieldCheck className="w-4 h-4 text-emerald-700" />
           <span>SOC-2 & ISO 27001 Certified System</span>
         </div>
@@ -36,16 +36,16 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
         <div className="w-full max-w-lg space-y-6">
           {/* Card Wrapper */}
-          <div className="bg-white border-2 border-slate-200 rounded-3xl shadow-xl p-6 sm:p-9">
+          <div className="bg-white border border-slate-200/90 rounded-2xl shadow-sm p-6 sm:p-8">
             {(title || subtitle) && (
               <div className="text-center mb-6">
                 {title && (
-                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
                     {title}
                   </h2>
                 )}
                 {subtitle && (
-                  <p className="text-sm font-semibold text-slate-600 mt-1.5">
+                  <p className="text-sm font-normal text-slate-500 mt-1.5">
                     {subtitle}
                   </p>
                 )}
@@ -56,7 +56,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           </div>
 
           {/* Trust Highlights Under Card */}
-          <div className="flex items-center justify-center gap-6 text-xs font-bold text-slate-700">
+          <div className="flex items-center justify-center gap-6 text-xs font-medium text-slate-500">
             <span className="flex items-center gap-1.5">
               <Lock className="w-4 h-4 text-emerald-700" />
               <span>TLS 1.3 Transport Security</span>

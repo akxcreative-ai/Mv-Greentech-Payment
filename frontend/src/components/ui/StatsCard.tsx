@@ -41,9 +41,9 @@ const colorVariants: Record<
   }
 > = {
   primary: {
-    iconBg: 'bg-navy-50 dark:bg-navy-950/60 border border-navy-200 dark:border-navy-800',
-    iconText: 'text-navy-800 dark:text-cyan-400',
-    borderTop: 'border-t-4 border-t-navy-800 dark:border-t-cyan-500',
+    iconBg: 'bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800',
+    iconText: 'text-emerald-800 dark:text-emerald-400',
+    borderTop: 'border-t-4 border-t-emerald-800 dark:border-t-emerald-500',
   },
   success: {
     iconBg: 'bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800',

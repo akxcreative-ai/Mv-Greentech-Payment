@@ -152,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return (
       <div className="space-y-1">
         {!collapsed && (
-          <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 select-none">
+          <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2 select-none">
             {title}
           </p>
         )}
@@ -175,7 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   collapsed ? 'justify-center p-2.5 mx-auto' : 'px-3.5 py-2.5 justify-between',
                   isActive
                     ? 'bg-emerald-50 text-emerald-800 shadow-xs font-semibold border-l-4 border-emerald-600 pl-3'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-emerald-800'
+                    : 'text-slate-600 hover:bg-emerald-50/60 hover:text-emerald-800'
                 )}
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -190,7 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
 
                 {!collapsed && item.badge !== undefined && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                     {item.badge}
                   </span>
                 )}

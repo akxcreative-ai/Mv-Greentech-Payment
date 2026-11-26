@@ -50,16 +50,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1 select-none"
+            className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1 select-none"
           >
             {label}
-            {required && <span className="text-rose-600 text-sm leading-none font-bold">*</span>}
+            {required && <span className="text-rose-600 text-xs leading-none font-semibold">*</span>}
           </label>
         )}
 
         <div className="relative flex items-center w-full">
           {effectivePrefixIcon && (
-            <div className="absolute left-3.5 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
+            <div className="absolute left-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-400">
               {effectivePrefixIcon}
             </div>
           )}
@@ -72,10 +72,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             readOnly={readOnly}
             required={required}
             className={cn(
-              'w-full h-11 px-3.5 text-sm sm:text-base font-semibold rounded-lg border-2 bg-white text-slate-900 placeholder:text-slate-400 placeholder:font-normal transition-all duration-150 outline-none shadow-xs',
-              'border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15',
-              effectivePrefixIcon && 'pl-11',
-              (effectiveSuffixIcon || (isPassword && allowPasswordToggle)) && 'pr-11',
+              'w-full h-10 px-3.5 text-sm font-normal rounded-lg border bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 placeholder:font-normal transition-all duration-150 outline-none shadow-xs',
+              'border-slate-300 dark:border-slate-700 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20',
+              effectivePrefixIcon && 'pl-10',
+              (effectiveSuffixIcon || (isPassword && allowPasswordToggle)) && 'pr-10',
               error &&
                 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20 text-rose-900 placeholder:text-rose-300',
               disabled && 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200 shadow-none',
