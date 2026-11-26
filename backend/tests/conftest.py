@@ -13,6 +13,11 @@ Configures:
 """
 
 import asyncio
+import os
+import tempfile
+
+# Keep test uploads out of the repository working tree (must run before app import)
+os.environ.setdefault("UPLOAD_DIR", tempfile.mkdtemp(prefix="mv-test-uploads-"))
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import AsyncGenerator, Dict, Optional

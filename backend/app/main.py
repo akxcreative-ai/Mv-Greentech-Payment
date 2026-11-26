@@ -31,6 +31,7 @@ from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from app.middleware.security import RequestLoggingMiddleware, SecurityHeadersMiddleware
 
 settings = get_settings()
+settings.validate_production_secrets()
 
 # Setup structured console logging
 logging.basicConfig(
@@ -39,6 +40,51 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger("mv-payment-approval")
+
+
+async def bootstrap_first_superadmin(session) -> None:
+    """
+    Creates the first Super Admin only when the users table is empty AND
+    FIRST_SUPERADMIN_EMAIL / FIRST_SUPERADMIN_PASSWORD are provided via environment.
+    All other users (approver, accountant, requester) are created by the admin from the UI.
+    """
+    from sqlalchemy import func, select
+
+    from app.models.role import Role, RoleEnum
+    from app.models.user import User
+    from app.utils.security import hash_password
+
+    email = settings.FIRST_SUPERADMIN_EMAIL.strip().lower()
+    password = settings.FIRST_SUPERADMIN_PASSWORD
+    if not email or not password:
+        return
+
+    user_count = (await session.execute(select(func.count(User.id)))).scalar() or 0
+    if user_count > 0:
+        return
+
+    if len(password) < 12:
+        logger.error("FIRST_SUPERADMIN_PASSWORD must be at least 12 characters; bootstrap skipped.")
+        return
+
+    role = (
+        await session.execute(select(Role).where(Role.name == RoleEnum.SUPER_ADMIN.value))
+    ).scalar_one()
+    parts = settings.FIRST_SUPERADMIN_NAME.strip().split(" ", 1)
+    session.add(
+        User(
+            email=email,
+            password_hash=hash_password(password),
+            first_name=parts[0] or "System",
+            last_name=parts[1] if len(parts) > 1 else "Administrator",
+            role_id=role.id,
+            is_active=True,
+            is_locked=False,
+            email_verified=True,
+        )
+    )
+    await session.commit()
+    logger.info("First super admin '%s' bootstrapped from environment.", email)
 
 
 @asynccontextmanager
@@ -56,79 +102,9 @@ async def lifespan(app: FastAPI):
             await session.commit()
         logger.info("Database schema and core roles verified.")
 
-        # Ensure default MV Greentech production accounts exist on any cold start / restart
+        # Optional first Super Admin bootstrap from environment (never hardcoded credentials)
         async with AsyncSessionLocal() as session:
-            from sqlalchemy import select, func
-            from app.models.user import User
-            from app.models.company import Company
-            from app.models.department import Department
-            from app.models.role import Role, RoleEnum
-            from app.utils.security import hash_password
-
-            user_count = (await session.execute(select(func.count(User.id)))).scalar() or 0
-            if user_count == 0:
-                comp_q = await session.execute(select(Company).where(Company.code == "MVG-01"))
-                comp = comp_q.scalar_one_or_none()
-                if not comp:
-                    comp = Company(
-                        name="MV Greentech",
-                        code="MVG-01",
-                        address="Gurugram, Haryana, India",
-                        phone="+91-124-4567890",
-                        email="info@mvgreentech.com",
-                        gst_number="06AAAAA0000A1Z5",
-                        pan_number="AAAAA0000A",
-                        primary_color="#0D5C3A",
-                        is_active=True
-                    )
-                    session.add(comp)
-                    await session.flush()
-
-                departments = {}
-                for dept_name, code in [
-                    ("Accounts & Finance", "FIN-01"),
-                    ("Operations", "OPS-01"),
-                    ("Procurement", "PROC-01"),
-                    ("Management", "MGMT-01"),
-                ]:
-                    d_q = await session.execute(
-                        select(Department).where(Department.company_id == comp.id, Department.code == code)
-                    )
-                    dept = d_q.scalar_one_or_none()
-                    if not dept:
-                        dept = Department(company_id=comp.id, name=dept_name, code=code, is_active=True)
-                        session.add(dept)
-                        await session.flush()
-                    departments[code] = dept
-
-                roles = {}
-                for r_name in [RoleEnum.SUPER_ADMIN, RoleEnum.DIRECTOR, RoleEnum.ACCOUNTANT, RoleEnum.DEPARTMENT_HEAD]:
-                    res_r = await session.execute(select(Role).where(Role.name == r_name.value))
-                    roles[r_name.value] = res_r.scalar_one()
-
-                users_to_create = [
-                    {"email": "admin@mvgreentech.com", "password": "Admin@MVGreentech2026", "first_name": "System", "last_name": "Admin", "role_name": RoleEnum.SUPER_ADMIN.value, "dept_code": "MGMT-01", "phone": "+91-9876543210"},
-                    {"email": "approver@mvgreentech.com", "password": "Approver@MVGreentech2026", "first_name": "Executive", "last_name": "Approver", "role_name": RoleEnum.DIRECTOR.value, "dept_code": "MGMT-01", "phone": "+91-9876543211"},
-                    {"email": "accountant@mvgreentech.com", "password": "Accountant@MVGreentech2026", "first_name": "Finance", "last_name": "Accountant", "role_name": RoleEnum.ACCOUNTANT.value, "dept_code": "FIN-01", "phone": "+91-9876543212"},
-                    {"email": "requester@mvgreentech.com", "password": "Requester@MVGreentech2026", "first_name": "Operations", "last_name": "Requester", "role_name": RoleEnum.DEPARTMENT_HEAD.value, "dept_code": "OPS-01", "phone": "+91-9876543213"}
-                ]
-
-                for u_data in users_to_create:
-                    u = User(
-                        company_id=comp.id,
-                        department_id=departments[u_data["dept_code"]].id,
-                        role_id=roles[u_data["role_name"]].id,
-                        email=u_data["email"],
-                        password_hash=hash_password(u_data["password"]),
-                        first_name=u_data["first_name"],
-                        last_name=u_data["last_name"],
-                        phone=u_data["phone"],
-                        is_active=True,
-                        email_verified=True,
-                    )
-                    session.add(u)
-                await session.commit()
-                logger.info("Automatic startup bootstrap of 4 core accounts completed.")
+            await bootstrap_first_superadmin(session)
     except Exception as exc:
         logger.warning("Database bootstrap notice (may be normal if migrations run separately): %s", exc)
 
@@ -145,9 +121,9 @@ app = FastAPI(
     title=settings.APP_NAME,
     description="Enterprise Multi-Tier Payment Voucher & Approval System API",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    docs_url=None if settings.is_production else "/docs",
+    redoc_url=None if settings.is_production else "/redoc",
+    openapi_url=None if settings.is_production else "/openapi.json",
     lifespan=lifespan,
 )
 
@@ -170,11 +146,12 @@ app.add_middleware(
 )
 
 # 3. Cross-Origin Resource Sharing (CORS)
-cors_origins = settings.CORS_ORIGINS if settings.CORS_ORIGINS else ["*"]
+# Never fall back to "*" together with allow_credentials=True
+cors_origins = settings.CORS_ORIGINS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=settings.CORS_ORIGIN_REGEX or None,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],

@@ -51,6 +51,7 @@ const setupSchema = z
       .regex(/[0-9]/, 'Must contain at least one number (0-9)')
       .regex(/[^A-Za-z0-9]/, 'Must contain at least one special character (!@#$%^&*)'),
     confirmPassword: z.string().min(1, 'Please confirm administrative password'),
+    setupToken: z.string().max(256, 'Setup token is too long').optional(),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: 'You must acknowledge the enterprise administrator root charter',
     }),
@@ -85,6 +86,7 @@ export const SetupPage: React.FC = () => {
       email: '',
       password: '',
       confirmPassword: '',
+      setupToken: '',
       acceptTerms: false,
     },
   });
@@ -135,6 +137,7 @@ export const SetupPage: React.FC = () => {
         password: data.password,
         first_name: data.firstName.trim(),
         last_name: data.lastName.trim(),
+        setup_token: data.setupToken?.trim() || undefined,
       });
 
       // Save company name to local preferences if needed
@@ -150,6 +153,11 @@ export const SetupPage: React.FC = () => {
 
       const status = errorObj.response?.status;
       const detail = errorObj.response?.data?.detail || errorObj.response?.data?.message;
+
+      if (status === 403 && !detail?.toLowerCase().includes('already initialized')) {
+        setErrorMessage(detail || 'Setup token is invalid or initial setup is disabled on the server.');
+        return;
+      }
 
       if (status === 403 || detail?.toLowerCase().includes('already initialized')) {
         setIsAlreadySetup(true);
@@ -312,6 +320,17 @@ export const SetupPage: React.FC = () => {
 
         {/* Setup Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          {/* Server-side setup token (SETUP_TOKEN env var) */}
+          <Input
+            label="Setup Token"
+            type="password"
+            placeholder="Value of SETUP_TOKEN configured on the server"
+            autoComplete="off"
+            error={errors.setupToken?.message}
+            disabled={isSubmitting}
+            {...register('setupToken')}
+          />
+
           {/* Company Details */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">

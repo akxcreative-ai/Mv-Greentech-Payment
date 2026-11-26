@@ -7,6 +7,7 @@ Provides:
 """
 
 from datetime import datetime
+import hmac
 import logging
 from typing import Any, Dict, Optional
 import uuid
@@ -17,6 +18,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.config import get_settings
 from app.database import get_db
 from app.middleware.rate_limit import get_client_ip
 from app.models.audit_log import AuditEventType, AuditLog
@@ -38,6 +40,7 @@ class InitialSetupRequest(BaseModel):
     password: str = Field(..., min_length=8, description="Strong administrative password (min 8 chars)")
     first_name: str = Field(..., min_length=1, max_length=100, description="Admin given name")
     last_name: str = Field(..., min_length=1, max_length=100, description="Admin family name")
+    setup_token: Optional[str] = Field(default=None, max_length=256, description="Must match SETUP_TOKEN env var")
 
 
 class RoleMiniResponse(BaseModel):
@@ -163,6 +166,21 @@ async def initialize_system(
             detail="System is already initialized. The initial setup endpoint is permanently disabled.",
         )
 
+    # Guard: the endpoint is public while the DB is empty, so require a server-side secret.
+    settings = get_settings()
+    expected_token = settings.SETUP_TOKEN
+    if expected_token:
+        if not payload_in.setup_token or not hmac.compare_digest(payload_in.setup_token, expected_token):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Invalid setup token.",
+            )
+    elif settings.is_production:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Initial setup is disabled. Set SETUP_TOKEN (or FIRST_SUPERADMIN_EMAIL/PASSWORD) on the server.",
+        )
+
     # 1. Create or verify default system roles
     roles_map = await ensure_default_roles(db)
     super_admin_role = roles_map[RoleEnum.SUPER_ADMIN.value]
@@ -213,170 +231,3 @@ async def initialize_system(
         is_active=created_user.is_active,
         created_at=created_user.created_at,
     )
-
-
-@router.post("/seed", summary="Seed full demo data (Company, Users, Vendors, Requests)")
-async def seed_demo_data():
-    try:
-        from seed_full_demo import seed_full
-        await seed_full()
-        return {"status": "success", "message": "Demo data seeded successfully"}
-    except Exception as exc:
-        logger.error("Seeding failed: %s", exc)
-        return {"status": "error", "message": str(exc)}
-
-
-@router.post("/clean-production", summary="Reset to clean production state (removes all demo requests, vendors and creates clean MV Greentech admin)")
-async def clean_production_reset():
-    try:
-        from sqlalchemy import delete
-        from app.database import AsyncSessionLocal, init_db
-        from app.models.payment_request import PaymentRequest
-        from app.models.approval import ApprovalRecord, ClarificationMessage
-        from app.models.payment_record import PaymentRecord
-        from app.models.audit_log import AuditLog
-        from app.models.vendor import Vendor
-        from app.models.user import User
-        from app.models.department import Department
-        from app.models.company import Company
-        from app.models.role import Role, RoleEnum
-        from app.utils.security import hash_password
-
-        # Ensure all tables exist first
-        await init_db()
-
-        async with AsyncSessionLocal() as db:
-            # 1. Safely delete existing records
-            for model in [ClarificationMessage, ApprovalRecord, PaymentRecord, PaymentRequest, AuditLog, Vendor, User, Department, Company]:
-                try:
-                    await db.execute(delete(model))
-                except Exception as del_err:
-                    logger.warning("Table cleanup skipped for %s: %s", model, del_err)
-            await db.flush()
-
-            # 2. Ensure Roles
-            roles = {}
-            for r_name in [RoleEnum.SUPER_ADMIN, RoleEnum.DIRECTOR, RoleEnum.ACCOUNTANT, RoleEnum.DEPARTMENT_HEAD]:
-                q_r = select(Role).where(Role.name == r_name.value)
-                res_r = await db.execute(q_r)
-                r_obj = res_r.scalar_one_or_none()
-                if not r_obj:
-                    r_obj = Role(
-                        name=r_name.value,
-                        display_name=r_name.value.replace("_", " ").title(),
-                        description=f"{r_name.value} role",
-                        permissions={"*": True} if r_name == RoleEnum.SUPER_ADMIN else {"payment_requests": ["read", "write"]},
-                        is_system_role=True
-                    )
-                    db.add(r_obj)
-                    await db.flush()
-                roles[r_name.value] = r_obj
-
-            # 3. Create Official MV Greentech Company
-            company = Company(
-                name="MV Greentech",
-                code="MVG-01",
-                address="Gurugram, Haryana, India",
-                phone="+91-124-4567890",
-                email="info@mvgreentech.com",
-                gst_number="06AAAAA0000A1Z5",
-                pan_number="AAAAA0000A",
-                primary_color="#0D5C3A",
-                is_active=True
-            )
-            db.add(company)
-            await db.flush()
-
-            # 4. Create Standard Departments
-            departments = {}
-            for dept_name, code in [
-                ("Accounts & Finance", "FIN-01"),
-                ("Operations", "OPS-01"),
-                ("Procurement", "PROC-01"),
-                ("Management", "MGMT-01"),
-            ]:
-                dept = Department(
-                    company_id=company.id,
-                    name=dept_name,
-                    code=code,
-                    is_active=True
-                )
-                db.add(dept)
-                await db.flush()
-                departments[code] = dept
-
-            # 5. Create Official Corporate Accounts for the 4 Key Roles
-            users_to_create = [
-                {
-                    "email": "admin@mvgreentech.com",
-                    "password": "Admin@MVGreentech2026",
-                    "first_name": "System",
-                    "last_name": "Admin",
-                    "role_name": RoleEnum.SUPER_ADMIN.value,
-                    "dept_code": "MGMT-01",
-                    "phone": "+91-9876543210"
-                },
-                {
-                    "email": "approver@mvgreentech.com",
-                    "password": "Approver@MVGreentech2026",
-                    "first_name": "Executive",
-                    "last_name": "Approver",
-                    "role_name": RoleEnum.DIRECTOR.value,
-                    "dept_code": "MGMT-01",
-                    "phone": "+91-9876543211"
-                },
-                {
-                    "email": "accountant@mvgreentech.com",
-                    "password": "Accountant@MVGreentech2026",
-                    "first_name": "Finance",
-                    "last_name": "Accountant",
-                    "role_name": RoleEnum.ACCOUNTANT.value,
-                    "dept_code": "FIN-01",
-                    "phone": "+91-9876543212"
-                },
-                {
-                    "email": "requester@mvgreentech.com",
-                    "password": "Requester@MVGreentech2026",
-                    "first_name": "Operations",
-                    "last_name": "Requester",
-                    "role_name": RoleEnum.DEPARTMENT_HEAD.value,
-                    "dept_code": "OPS-01",
-                    "phone": "+91-9876543213"
-                }
-            ]
-
-            for u_data in users_to_create:
-                u = User(
-                    company_id=company.id,
-                    department_id=departments[u_data["dept_code"]].id,
-                    role_id=roles[u_data["role_name"]].id,
-                    email=u_data["email"],
-                    password_hash=hash_password(u_data["password"]),
-                    first_name=u_data["first_name"],
-                    last_name=u_data["last_name"],
-                    phone=u_data["phone"],
-                    is_active=True,
-                    email_verified=True,
-                )
-                db.add(u)
-
-            await db.commit()
-
-            return {
-                "status": "success",
-                "message": "System successfully configured with 4 core production roles.",
-                "roles_configured": [
-                    {"role": "Super Admin", "email": "admin@mvgreentech.com", "password": "Admin@MVGreentech2026"},
-                    {"role": "Approver / Director", "email": "approver@mvgreentech.com", "password": "Approver@MVGreentech2026"},
-                    {"role": "Accountant / Finance", "email": "accountant@mvgreentech.com", "password": "Accountant@MVGreentech2026"},
-                    {"role": "Requester / Operations", "email": "requester@mvgreentech.com", "password": "Requester@MVGreentech2026"}
-                ],
-                "company": "MV Greentech",
-                "demo_requests_deleted": True,
-                "demo_vendors_deleted": True
-            }
-    except Exception as exc:
-        logger.error("Production clean reset failed: %s", exc)
-        return {"status": "error", "message": str(exc)}
-
-
