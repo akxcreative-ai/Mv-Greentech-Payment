@@ -234,13 +234,13 @@ export const LoginPage: React.FC = () => {
         {/* Header Branding */}
         <div className="text-center">
           <div className="flex justify-center mb-3">
-            <Logo size="lg" to="/login" showSubtitle={false} />
+            <Logo compact size="lg" to="/login" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800 mt-2">
-            Sign In to MV Portal
+            MV GREENTECH
           </h1>
-          <p className="text-sm font-normal text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
-            Enterprise Payment Approval & Financial Authorization System
+          <p className="text-sm font-semibold text-emerald-700 tracking-wider uppercase mt-1">
+            PAYMENT APPROVAL
           </p>
         </div>
 
