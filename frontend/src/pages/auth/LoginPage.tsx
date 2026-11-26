@@ -236,10 +236,10 @@ export const LoginPage: React.FC = () => {
           <div className="flex justify-center mb-3">
             <Logo compact size="lg" to="/login" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800 mt-2">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 mt-2">
             MV GREENTECH
           </h1>
-          <p className="text-sm font-semibold text-emerald-700 tracking-wider uppercase mt-1">
+          <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 tracking-wider uppercase mt-1">
             PAYMENT APPROVAL
           </p>
         </div>
@@ -297,12 +297,12 @@ export const LoginPage: React.FC = () => {
           {/* Password Field */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-slate-700">
+              <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
                 Password
               </span>
               <Link
                 to="/forgot-password"
-                className="text-xs font-medium text-emerald-700 hover:text-emerald-800 hover:underline transition-colors"
+                className="text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:underline transition-colors"
                 tabIndex={-1}
               >
                 Forgot Password?
@@ -325,11 +325,11 @@ export const LoginPage: React.FC = () => {
             <label className="flex items-center gap-2.5 cursor-pointer select-none">
               <input
                 type="checkbox"
-                className="w-4 h-4 rounded border border-slate-300 text-emerald-700 focus:ring-emerald-600 transition"
+                className="w-4 h-4 rounded border border-slate-300 dark:border-slate-600 text-emerald-700 focus:ring-emerald-600 transition"
                 disabled={isSubmitting || lockoutRemaining > 0}
                 {...register('rememberMe')}
               />
-              <span className="text-xs sm:text-sm font-normal text-slate-600">
+              <span className="text-xs sm:text-sm font-normal text-slate-600 dark:text-slate-400">
                 Remember this device for 30 days
               </span>
             </label>
@@ -352,12 +352,12 @@ export const LoginPage: React.FC = () => {
         </form>
 
         {/* Corporate Support / Help Info */}
-        <div className="pt-4 border-t border-slate-200 text-center">
-          <p className="text-xs sm:text-sm font-normal text-slate-500">
+        <div className="pt-4 border-t border-slate-200 dark:border-dark-border text-center">
+          <p className="text-xs sm:text-sm font-normal text-slate-500 dark:text-slate-400">
             Need access or forgot password?{' '}
             <a
               href="mailto:it-support@mvgreentech.com"
-              className="font-medium text-emerald-700 hover:text-emerald-800 underline"
+              className="font-medium text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 underline"
             >
               Contact IT Support
             </a>

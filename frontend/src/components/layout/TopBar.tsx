@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Menu,
@@ -13,6 +13,7 @@ import {
   Building,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useUIStore } from '@/store/uiStore';
 import { Avatar } from '@/components/ui/Avatar';
 import { Logo } from './Logo';
 import {
@@ -53,34 +54,10 @@ export const TopBar: React.FC<TopBarProps> = ({
   title: customTitle,
   className,
 }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { darkMode, toggleDarkMode } = useUIStore();
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('mv_theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
-
-  const toggleDarkMode = () => {
-    const nextMode = !isDarkMode;
-    setIsDarkMode(nextMode);
-    if (nextMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('mv_theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('mv_theme', 'light');
-    }
-  };
 
   const handleLogout = () => {
     logout();
@@ -153,12 +130,12 @@ export const TopBar: React.FC<TopBarProps> = ({
           type="button"
           onClick={toggleDarkMode}
           className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none"
-          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
-          {isDarkMode ? (
+          {darkMode ? (
             <Sun className="w-4 h-4 text-amber-400" />
           ) : (
-            <Moon className="w-4 h-4" />
+            <Moon className="w-4 h-4 text-slate-600 dark:text-slate-300" />
           )}
         </button>
 

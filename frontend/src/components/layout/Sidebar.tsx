@@ -174,8 +174,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   'group flex items-center rounded-xl text-sm font-medium transition-all duration-150 select-none',
                   collapsed ? 'justify-center p-2.5 mx-auto' : 'px-3.5 py-2.5 justify-between',
                   isActive
-                    ? 'bg-emerald-50 text-emerald-800 shadow-xs font-semibold border-l-4 border-emerald-600 pl-3'
-                    : 'text-slate-600 hover:bg-emerald-50/60 hover:text-emerald-800'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-400 shadow-xs font-semibold border-l-4 border-emerald-600 pl-3'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/40 hover:text-emerald-800 dark:hover:text-emerald-300'
                 )}
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -183,14 +183,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className={cn(
                       'shrink-0 transition-colors',
                       collapsed ? 'w-5 h-5' : 'w-4 h-4',
-                      isActive ? 'text-emerald-700' : 'text-slate-400 group-hover:text-emerald-700'
+                      isActive ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-emerald-700 dark:group-hover:text-emerald-400'
                     )}
                   />
                   {!collapsed && <span className="truncate">{item.title}</span>}
                 </div>
 
                 {!collapsed && item.badge !== undefined && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
                     {item.badge}
                   </span>
                 )}
@@ -205,7 +205,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        'bg-white text-slate-800 flex flex-col h-full border-r border-slate-200 transition-all duration-300 select-none shadow-sm relative',
+        'bg-white dark:bg-dark-card text-slate-800 dark:text-slate-100 flex flex-col h-full border-r border-slate-200 dark:border-dark-border transition-all duration-300 select-none shadow-sm relative',
         collapsed ? 'w-18' : 'w-64',
         className
       )}
@@ -213,7 +213,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Brand Header */}
       <div
         className={cn(
-          'h-16 flex items-center border-b border-slate-200 px-4 bg-white',
+          'h-16 flex items-center border-b border-slate-200 dark:border-dark-border px-4 bg-white dark:bg-dark-card',
           collapsed ? 'justify-center' : 'justify-between'
         )}
       >
@@ -223,7 +223,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             title="Close menu"
           >
             <X className="w-5 h-5" />
@@ -232,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation Groups Container */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin scrollbar-thumb-slate-200">
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
         {renderNavGroup('Menu', visibleMainItems)}
         {renderNavGroup('Administration', visibleAdminItems)}
       </div>
@@ -242,7 +242,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-white border border-slate-300 text-slate-600 flex items-center justify-center hover:bg-slate-50 hover:text-emerald-700 shadow-sm transition-all z-20"
+          className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-white dark:bg-dark-card border border-slate-300 dark:border-dark-border text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-emerald-700 dark:hover:text-emerald-400 shadow-sm transition-all z-20"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
@@ -250,7 +250,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {/* User Information Footer */}
-      <div className="p-3 bg-slate-50/80 border-t border-slate-200">
+      <div className="p-3 bg-slate-50/80 dark:bg-slate-900/50 border-t border-slate-200 dark:border-dark-border">
         <div
           className={cn(
             'flex items-center gap-3 rounded-xl p-1.5',
@@ -266,10 +266,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-800 truncate leading-tight">
+                <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate leading-tight">
                   {user?.fullName || 'Guest User'}
                 </p>
-                <p className="text-[10px] text-emerald-700 truncate mt-0.5 font-semibold">
+                <p className="text-[10px] text-emerald-700 dark:text-emerald-400 truncate mt-0.5 font-medium">
                   {user?.designation || user?.role || 'Authorized Member'}
                 </p>
               </div>
@@ -280,7 +280,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={logout}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-200/60 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors"
               title="Sign out"
             >
               <LogOut className="w-4 h-4" />

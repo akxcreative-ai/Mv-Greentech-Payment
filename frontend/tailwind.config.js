@@ -8,6 +8,11 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Dark Mode Surface Tokens (Matching MV Greentech CRM)
+        'dark-bg': '#0B1220',
+        'dark-card': '#131E30',
+        'dark-border': '#1E293B',
+
         // MV Greentech Brand Green (#0D5C3A & Emeralds)
         greentech: {
           50: '#f0fdf4',
