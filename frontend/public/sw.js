@@ -10,7 +10,7 @@
  * - skipWaiting and clients.claim for seamless updates
  */
 
-const CACHE_VERSION = 'v2.0.2';
+const CACHE_VERSION = 'v2.0.3';
 const STATIC_CACHE_NAME = `mv-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `mv-dynamic-${CACHE_VERSION}`;
 
